@@ -1,21 +1,32 @@
-from typing import Any, Dict, List
+from typing import List
 
 from pydantic import BaseModel, Field
 
 
 class Task(BaseModel):
-    id: str
-    title: str
-    priority: int = Field(default=1, ge=1, le=5)
-    duration_minutes: int = Field(default=30, ge=1)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    id: int
+    duration: int = Field(gt=0)
+    priority: int = Field(ge=0)
 
 
-class ScheduleRequest(BaseModel):
-    tasks: List[Task]
+class RequestModel(BaseModel):
+    tasks: List[Task] = Field(default_factory=list)
+    algorithm: str
 
 
-class ScheduleResponse(BaseModel):
-    ordered_tasks: List[Task]
-    score: float
-    strategy: str = "baseline_priority"
+class ScheduleItem(BaseModel):
+    task_id: int
+    start: int
+    end: int
+    core: int
+
+
+class Metrics(BaseModel):
+    avg_wait_time: int
+    throughput: int
+    tail_latency: int
+
+
+class ResponseModel(BaseModel):
+    schedule: List[ScheduleItem]
+    metrics: Metrics

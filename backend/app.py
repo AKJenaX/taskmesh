@@ -14,9 +14,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.get("/")
+def root():
+    return {
+        "message": "TaskMesh API running",
+        "endpoint": "/simulate",
+        "status": "ok"
+    }
+
+
 app.include_router(router)
-
-
-@app.get("/health")
-def health() -> dict:
-    return {"status": "ok"}
