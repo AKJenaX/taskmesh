@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TaskMesh</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="card">
+        <h1>TaskMesh</h1>
+        <p class="subtitle">Quick task scheduling demo powered by FastAPI.</p>
+
+        <form id="task-form" class="task-form">
+          <label for="tasks-input">Tasks</label>
+          <textarea
+            id="tasks-input"
+            rows="8"
+            placeholder="One task per line: title,priority,duration_minutes&#10;Demo review,5,30&#10;Write slides,3,45&#10;Inbox cleanup,1,20"
+          ></textarea>
+          <button type="submit">Generate Schedule</button>
+        </form>
+
+        <div id="status" class="status"></div>
+        <pre id="result" class="result"></pre>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

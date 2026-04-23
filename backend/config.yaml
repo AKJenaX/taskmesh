@@ -1,0 +1,4 @@
+app_name: taskmesh
+default_strategy: baseline_priority
+max_tasks: 100
+score_weight_priority: 1.0
