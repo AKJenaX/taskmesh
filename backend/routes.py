@@ -117,6 +117,14 @@ def validate_and_normalize(result):
     }
 
 
+def get_scheduler_func(algo):
+    if algo == "baseline":
+        return run_baseline if run_baseline else run_baseline_stub
+    if algo == "rl":
+        return run_rl if run_rl else run_rl_stub
+    return None
+
+
 @router.post("/simulate", response_model=ResponseModel)
 def simulate(payload: RequestModel) -> ResponseModel:
     fallback = ResponseModel(
@@ -154,5 +162,37 @@ def simulate(payload: RequestModel) -> ResponseModel:
             schedule=[ScheduleItem(**item) for item in validated["schedule"]],
             metrics=Metrics(**normalized_metrics),
         )
+    except Exception:
+        return fallback
+
+
+@router.post("/schedule")
+def schedule(payload: RequestModel):
+    fallback = {
+        "ordered_tasks": [],
+        "score": 0,
+        "strategy": "error",
+    }
+
+    try:
+        algo = (payload.algorithm or "").strip().lower()
+        func = get_scheduler_func(algo)
+        if func is None:
+            return fallback
+
+        result = func(payload.tasks)
+
+        validated = validate_and_normalize(result)
+        if validated is None:
+            return fallback
+
+        ordered_tasks = [item["task_id"] for item in validated["schedule"]]
+        score = int(validated["metrics"]["throughput"])
+
+        return {
+            "ordered_tasks": ordered_tasks,
+            "score": score,
+            "strategy": payload.algorithm,
+        }
     except Exception:
         return fallback
