@@ -2,6 +2,16 @@ from fastapi import APIRouter
 
 from backend.schemas import Metrics, RequestModel, ResponseModel, ScheduleItem
 
+try:
+    from backend.scheduler.rl_agent import run_rl
+except Exception:
+    run_rl = None
+
+try:
+    from backend.scheduler.rl_agent import run_baseline
+except Exception:
+    run_baseline = None
+
 
 router = APIRouter()
 
@@ -122,11 +132,13 @@ def simulate(payload: RequestModel) -> ResponseModel:
         algo = (payload.algorithm or "").strip().lower()
 
         if algo == "baseline":
-            result = run_baseline_stub(payload.tasks)
+            func = run_baseline if run_baseline else run_baseline_stub
         elif algo == "rl":
-            result = run_rl_stub(payload.tasks)
+            func = run_rl if run_rl else run_rl_stub
         else:
             return fallback
+
+        result = func(payload.tasks)
 
         validated = validate_and_normalize(result)
         if validated is None:
