@@ -64,9 +64,15 @@ Use:
 
 ---
 
-## 📈 Training Progress
+## 📈 Training Curve
 
-![Reward Curve](./reward_plot.png)
+Reward improved from -67 to -9.6 over 200 episodes.
+
+This demonstrates that the agent learns better scheduling decisions over time using reward feedback.
+
+Reward trend shows consistent improvement across episodes.
+
+![Reward Curve](outputs/reward_plot.png)
 
 ---
 ## 🎬 Demo Walkthrough

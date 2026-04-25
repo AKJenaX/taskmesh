@@ -1,6 +1,7 @@
 import random
 import json
 from pathlib import Path
+import matplotlib.pyplot as plt
 
 from backend.scheduler.utils import compute_metrics
 from backend.scheduler.baseline import baseline_schedule
@@ -99,7 +100,7 @@ def main():
     random.seed(SEED)
     
     episodes = 200
-    episode_rewards = []
+    rewards = []
     best_reward = float("-inf")
     best_weights_dict = dict(BEST_WEIGHTS)
     milestone_episodes = {1, 50, 100, 150, 200}
@@ -123,7 +124,7 @@ def main():
 
         # environment + reward
         total_reward, _ = evaluate_weights(tasks, weights)
-        episode_rewards.append(total_reward)
+        rewards.append(total_reward)
 
         # update best weights
         if total_reward > best_reward:
@@ -147,8 +148,8 @@ def main():
         BEST_WEIGHTS["w_deadline"] = min(BEST_WEIGHTS["w_deadline"], 0.2)
 
     WEIGHTS_FILE.write_text(json.dumps(BEST_WEIGHTS, indent=2), encoding="utf-8")
-    first_window = sum(episode_rewards[:20]) / 20
-    last_window = sum(episode_rewards[-20:]) / 20
+    first_window = sum(rewards[:20]) / 20
+    last_window = sum(rewards[-20:]) / 20
     trend = last_window - first_window
     if trend < 0:
         trend = abs(trend)
@@ -159,7 +160,20 @@ def main():
     print(f"Saved learned weights to: {WEIGHTS_FILE}")
     
     with open("scripts/rewards.json", "w") as f:
-        json.dump(episode_rewards, f)
+        json.dump(rewards, f)
+
+    output_dir = Path("outputs")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    plot_path = output_dir / "reward_plot.png"
+
+    plt.figure()
+    plt.plot(range(1, episodes + 1), rewards)
+    plt.xlabel("Episodes")
+    plt.ylabel("Reward")
+    plt.title("Training Reward Curve")
+    plt.savefig(plot_path)
+    plt.close()
+    print("Reward plot saved to outputs/reward_plot.png")
 
 if __name__ == "__main__":
     main()
