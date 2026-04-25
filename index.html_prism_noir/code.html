@@ -170,7 +170,7 @@
                 <span class="material-icons-outlined">hub</span>
                 <span>MESH</span>
             </button>
-            <button class="nav-item">
+            <button class="nav-item" onclick="runScheduler()">
                 <span class="material-icons-outlined">format_list_bulleted</span>
                 <span>TASKS</span>
             </button>
@@ -186,5 +186,34 @@
     </main>
 
     <script src="app.js"></script>
+    <script>
+async function runScheduler() {
+  try {
+    const res = await fetch("http://127.0.0.1:8000/simulate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        tasks: [
+          { id: 1, duration: 8, priority: 1 },
+          { id: 2, duration: 2, priority: 3 },
+          { id: 3, duration: 6, priority: 2 },
+          { id: 4, duration: 1, priority: 3 }
+        ],
+        algorithm: "rl"
+      })
+    });
+
+    const data = await res.json();
+    console.log(data);
+
+    alert(JSON.stringify(data, null, 2));
+
+  } catch (err) {
+    alert("API error: " + err.message);
+  }
+}
+</script>
 </body>
 </html>

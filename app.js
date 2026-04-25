@@ -188,6 +188,7 @@ function clearResults() {
 
 function parseTasks(rawText) {
   const parsedTasks = [];
+  const taskDetails = new Map();
   const errors = [];
   const lines = rawText
     .split("\n")
@@ -213,16 +214,20 @@ function parseTasks(rawText) {
       return;
     }
 
+    const id = index + 1;
     parsedTasks.push({
-      id: `task-${index + 1}`,
+      id,
+      duration,
+      priority,
+    });
+    taskDetails.set(id, {
       title,
       priority,
       duration_minutes: duration,
-      metadata: {},
     });
   });
 
-  return { parsedTasks, errors };
+  return { parsedTasks, taskDetails, errors };
 }
 
 function renderValidationErrors(errors) {
@@ -291,61 +296,73 @@ function bindUiEvents() {
     clearResults();
   });
 
-  form.addEventListener("submit", async (event) => {
+  form.addEventListener("submit", runScheduler);
+}
+
+async function runScheduler(event) {
+  if (event) {
     event.preventDefault();
-    const apiBase = apiUrlInput.value.trim().replace(/\/+$/, "");
-    const { parsedTasks, errors } = parseTasks(input.value);
+  }
 
-    renderValidationErrors(errors);
-    clearResults();
-    if (!apiBase) {
-      statusBox.textContent = "Provide a valid API URL first.";
-      return;
+  const { parsedTasks, taskDetails, errors } = parseTasks(input.value);
+
+  renderValidationErrors(errors);
+  clearResults();
+  if (parsedTasks.length === 0) {
+    statusBox.textContent = "Add at least one valid task line.";
+    return;
+  }
+  if (errors.length > 0) {
+    statusBox.textContent = "Fix validation errors before scheduling.";
+    return;
+  }
+
+  statusBox.textContent = "Scheduling tasks...";
+
+  try {
+    const response = await fetch("http://127.0.0.1:8000/simulate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        tasks: parsedTasks,
+        algorithm: "rl",
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
     }
-    if (parsedTasks.length === 0) {
-      statusBox.textContent = "Add at least one valid task line.";
-      return;
-    }
-    if (errors.length > 0) {
-      statusBox.textContent = "Fix validation errors before scheduling.";
-      return;
-    }
 
-    statusBox.textContent = "Scheduling tasks...";
+    const data = await response.json();
+    const orderedTasks = (data.schedule || []).map((item) => {
+      const details = taskDetails.get(item.task_id);
+      return {
+        title: details ? details.title : `Task ${item.task_id}`,
+        priority: details ? details.priority : "--",
+        duration_minutes: details ? details.duration_minutes : item.end - item.start,
+      };
+    });
+    const stageLabel = detectStage(orderedTasks);
+    const latestScore = data.metrics?.throughput ?? data.metrics?.avg_wait_time ?? "--";
 
-    try {
-      const response = await fetch(`${apiBase}/schedule`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ tasks: parsedTasks }),
-      });
+    statusBox.textContent = `Schedule ready. Score: ${latestScore} (rl)`;
+    proofStage.textContent = stageLabel;
+    proofScore.textContent = String(latestScore);
+    proofStrategy.textContent = "rl";
 
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
-      }
+    judgeSummary.textContent = `Completed ${stageLabel} with ${orderedTasks.length} tasks and scheduler score ${latestScore}.`;
+    benchmarkTemplate.textContent = "No benchmark loaded yet. Run benchmark.py and paste real results.";
 
-      const data = await response.json();
-      const orderedTasks = data.ordered_tasks || [];
-      const stageLabel = detectStage(orderedTasks);
-
-      statusBox.textContent = `Schedule ready. Score: ${data.score} (${data.strategy})`;
-      proofStage.textContent = stageLabel;
-      proofScore.textContent = String(data.score ?? "--");
-      proofStrategy.textContent = data.strategy || "unknown";
-
-      judgeSummary.textContent = `Completed ${stageLabel} with ${orderedTasks.length} tasks and scheduler score ${data.score}.`;
-      benchmarkTemplate.textContent = "No benchmark loaded yet. Run benchmark.py and paste real results.";
-
-      renderMetrics(orderedTasks);
-      renderOrderedTasks(orderedTasks);
-      resultBox.textContent = JSON.stringify(data, null, 2);
-    } catch (error) {
-      statusBox.textContent = "Could not reach the API. Check backend URL and make sure FastAPI is running.";
-      resultBox.textContent = error instanceof Error ? error.message : String(error);
-    }
-  });
+    renderMetrics(orderedTasks);
+    renderOrderedTasks(orderedTasks);
+    resultBox.textContent = JSON.stringify(data, null, 2);
+  } catch (error) {
+    alert("API error");
+    statusBox.textContent = "API error";
+    resultBox.textContent = error instanceof Error ? error.message : String(error);
+  }
 }
 
 function showDashboard() {
