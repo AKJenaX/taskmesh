@@ -6,8 +6,10 @@ colorTo: gray
 sdk: docker
 pinned: false
 ---
+
 # 🚀 TaskMesh - Adaptive Task Scheduling System
-> Achieves ~18% reduction in average wait time using reward-driven adaptive scheduling.
+
+> Achieves ~5–6% reduction in average wait time using reward-driven adaptive scheduling.
 
 🔗 **Live Demo:** https://akj123-taskmesh.hf.space/docs
 
@@ -15,95 +17,92 @@ pinned: false
 
 ## 🧠 Overview
 
-TaskMesh is a learning-based adaptive scheduling system that optimizes task execution order using reward-driven policy updates.
+TaskMesh is a learning-based adaptive scheduling system that optimizes task execution order using reward-driven policy learning.
 
-Unlike traditional schedulers (FIFO, priority-only), TaskMesh dynamically balances:
+Unlike traditional schedulers (FIFO, static priority), TaskMesh dynamically balances:
 
-- Task priority
-- Execution duration
-- System wait time
+- Task priority  
+- Execution duration  
+- Deadlines  
+- System wait time  
 
-to minimize overall latency and improve efficiency.
+to minimize overall latency and improve scheduling efficiency.
 
 ---
 
-## 🧠 Key Insight
+## 🧠 Key Idea
 
-Instead of using fixed scheduling rules, TaskMesh learns to balance multiple competing factors dynamically through reward feedback, enabling better real-time decision-making.
+Instead of relying on fixed heuristics, TaskMesh learns scheduling behavior through reward feedback.
+
+It continuously improves task ordering decisions by optimizing a weighted policy based on system performance.
 
 ---
 
 ## ⚙️ Key Features
 
-- 🔹 Policy-based task selection (state → action)
-- 🔹 Reward-driven learning across episodes
-- 🔹 Real-time scheduling via API
-- 🔹 Benchmark comparison vs baseline
-- 🔹 Fully deployed and interactive demo
+- 🔹 Adaptive scheduling using learned policy weights  
+- 🔹 Reinforcement learning-inspired optimization  
+- 🔹 Real-time scheduling API (FastAPI)  
+- 🔹 Baseline vs RL performance comparison  
+- 🔹 Fully deployed interactive demo (Hugging Face Space)  
+- 🔹 Reproducible training via Colab  
 
 ---
 
 ## 📊 Results
 
-| Metric | Baseline | TaskMesh |
-|--------|--------|----------|
-| Avg Wait Time | Higher | ↓ Improved (~18%) |
+| Metric | Baseline | TaskMesh (RL) |
+|--------|---------|--------------|
+| Avg Wait Time | Higher | ↓ Improved (~5–6%) |
 | Throughput | Same | Same |
-| Adaptability | None | High |
+| Tail Latency | Same | Same |
+| Adaptability | Static | Dynamic |
 
 ---
 
 ## 🧪 Try It Yourself
 
-Go to:
 👉 https://akj123-taskmesh.hf.space/docs
 
 Use:
-- `/schedule` to generate optimized schedules
-- `/simulate` to test scenarios
-
----
-
-## Phase 7 - Reproducible Training
-
-Colab Notebook:
-https://colab.research.google.com/drive/1zyUb5QCTzeQbBUSEdReoh9T8iEZLQOGB#scrollTo=zpqYcbqRbflH
-
-This notebook allows end-to-end execution of the training pipeline with reward-based learning and visualization.
-
----
-
-## 📈 Training Curve
-
-Reward improved from -67 to -9.6 over 200 episodes.
-
-This demonstrates that the agent learns better scheduling decisions over time using reward feedback.
-
-Reward trend shows consistent improvement across episodes.
-
-![Reward Curve](outputs/reward_plot.png)
-
----
-## 🎬 Demo Walkthrough
-
-1. Open the live API: https://akj123-taskmesh.hf.space/docs  
-2. Use `/schedule` endpoint  
-3. Input a list of tasks  
-4. Observe optimized execution order  
-
-TaskMesh dynamically prioritizes tasks based on reward-driven policy, reducing wait time and improving scheduling efficiency.
+- `/schedule` → Generate optimized schedule  
+- `/simulate` → Run scenario testing  
 
 ---
 
 ## 🧠 How It Works
 
-1. Environment simulates task scheduling
-2. Policy selects next task based on weighted scoring
-3. Reward signals guide weight optimization
-4. Best-performing weights are retained
+1. Environment simulates task scheduling  
+2. Agent selects next task based on learned scoring function  
+3. Reward is computed based on wait time and efficiency  
+4. Policy weights are updated over multiple episodes  
+5. Best weights are saved and used for inference  
 
 ---
 
-## 🏁 Conclusion
+## 🤖 ML Integration (Phase 4)
 
-TaskMesh demonstrates how reward-driven adaptive systems can outperform static scheduling strategies in dynamic environments.
+TaskMesh integrates a lightweight reinforcement learning loop:
+
+- State → Task list (priority, duration, deadline)  
+- Action → Select next task  
+- Reward → Minimize wait time  
+
+A minimal **TRL-style training loop** is implemented to align with ML-based optimization requirements.
+
+---
+
+## 🧪 Training Details
+
+- Episodes: 300  
+- Reward improved significantly over time  
+- Best weights learned and stored  
+
+Example learned weights:
+
+```json
+{
+  "w_priority": 1.39,
+  "w_deadline": 0.15,
+  "w_duration": 1.19
+}
