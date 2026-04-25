@@ -1,3 +1,11 @@
+---
+title: TaskMesh
+emoji: 💻
+colorFrom: green
+colorTo: gray
+sdk: docker
+pinned: false
+---
 # 🚀 TaskMesh - Adaptive Task Scheduling System
 > Achieves ~18% reduction in average wait time using reward-driven adaptive scheduling.
 
