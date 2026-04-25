@@ -3,15 +3,14 @@ import math
 import random
 from pathlib import Path
 
+from backend.scheduler.utils import load_learned_weights
+
 
 DEFAULT_WEIGHTS = {
     "w_priority": 1.0,
     "w_deadline": 0.5,
     "w_duration": 0.3,
 }
-
-WEIGHTS_FILE = Path(__file__).resolve().parent / "learned_weights.json"
-
 
 def _to_int(value, default=0):
     try:
@@ -24,18 +23,6 @@ def _get(task, key, default=0):
     if isinstance(task, dict):
         return task.get(key, default)
     return getattr(task, key, default)
-
-
-def _load_weights():
-    try:
-        data = json.loads(WEIGHTS_FILE.read_text(encoding="utf-8"))
-        return {
-            "w_priority": float(data.get("w_priority", DEFAULT_WEIGHTS["w_priority"])),
-            "w_deadline": float(data.get("w_deadline", DEFAULT_WEIGHTS["w_deadline"])),
-            "w_duration": float(data.get("w_duration", DEFAULT_WEIGHTS["w_duration"])),
-        }
-    except (FileNotFoundError, json.JSONDecodeError, TypeError, ValueError):
-        return dict(DEFAULT_WEIGHTS)
 
 
 def _normalize_tasks(tasks):
@@ -103,41 +90,50 @@ def _compute_metrics(schedule):
 
 
 def run_rl(tasks):
-    weights = _load_weights()
-    tasks = _normalize_tasks(tasks or [])
+    if not tasks:
+        return {
+            "schedule": [],
+            "metrics": {
+                "avg_wait_time": 0,
+                "throughput": 0,
+                "tail_latency": 0,
+            },
+        }
+
+    # ✅ merge weights correctly
+    weights = {**DEFAULT_WEIGHTS, **load_learned_weights()}
+
+    tasks = _normalize_tasks(tasks)
     schedule = []
     current_time = 0
 
     while tasks:
-        def score(task, current_time):
+
+        def score(task):
             base = (
                 weights["w_priority"] * task["priority"]
                 - weights["w_duration"] * (task["duration"] ** 1.5)
                 - 0.5 * current_time
             )
 
-            # urgency factor (different from baseline logic)
             urgency = task["priority"] / (task["duration"] + 1)
 
-            # strong exploration noise (IMPORTANT)
             noise = random.uniform(-2.0, 2.0)
 
             return base + (2 * urgency) + noise
 
-        scores = [score(t, current_time) for t in tasks]
+        scores = [score(t) for t in tasks]
 
-        # normalize for stability
+        # normalize for softmax stability
         max_score = max(scores)
         scores = [s - max_score for s in scores]
 
         TEMPERATURE = 5.0
-
         exp_scores = [math.exp(s / TEMPERATURE) for s in scores]
         total = sum(exp_scores)
-
         probs = [e / total for e in exp_scores]
 
-        # sample index
+        # sample
         r = random.random()
         cumulative = 0
         chosen_index = 0
@@ -152,6 +148,7 @@ def run_rl(tasks):
 
         start = current_time
         end = current_time + next_task["duration"]
+
         schedule.append(
             {
                 "task_id": int(next_task["id"]),
@@ -160,13 +157,13 @@ def run_rl(tasks):
                 "core": 0,
             }
         )
+
         current_time = end
 
     return {
         "schedule": schedule,
         "metrics": _compute_metrics(schedule),
     }
-
 
 def run_baseline(tasks):
     remaining_tasks = _normalize_tasks(tasks or [])

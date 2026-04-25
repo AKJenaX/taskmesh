@@ -1,3 +1,22 @@
+import json
+from pathlib import Path
+
+
+def load_learned_weights():
+    root = Path(__file__).resolve().parents[2]
+    weights_path = root / "backend" / "scheduler" / "learned_weights.json"
+
+    try:
+        data = json.loads(weights_path.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError, TypeError, ValueError):
+        data = {}
+
+    return {
+        "w_priority": float(data.get("w_priority", 1.0)),
+        "w_duration": float(data.get("w_duration", 1.0)),
+    }
+
+
 def compute_metrics(schedule):
     if not schedule:
         return {

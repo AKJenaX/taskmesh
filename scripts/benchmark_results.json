@@ -1,0 +1,16 @@
+{
+  "baseline": {
+    "avg_wait_time": 9.856,
+    "throughput": 5.0,
+    "tail_latency": 28.38
+  },
+  "trained": {
+    "avg_wait_time": 8.076,
+    "throughput": 5.0,
+    "tail_latency": 28.38
+  },
+  "improvement": {
+    "avg_wait_time": 18.06006493506493,
+    "tail_latency": 0.0
+  }
+}
