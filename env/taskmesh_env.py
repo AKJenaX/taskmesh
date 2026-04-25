@@ -13,22 +13,14 @@ class TaskMeshEnv:
         self.last_priorities = []
 
     def reset(self):
-        base_tasks = [
-            {"id": 1, "duration": 4, "priority": 2},
-            {"id": 2, "duration": 2, "priority": 3},
-            {"id": 3, "duration": 5, "priority": 1},
-            {"id": 4, "duration": 3, "priority": 2},
-        ]
         self.tasks = []
-        for task in base_tasks:
-            varied_duration = max(1, task["duration"] + self.rng.choice([-1, 0, 1]))
-            self.tasks.append(
-                {
-                    "id": task["id"],
-                    "duration": varied_duration,
-                    "priority": task["priority"],
-                }
-            )
+
+        for i in range(5):
+            self.tasks.append({
+                "id": i,
+                "duration": self.rng.randint(1, 10),
+                "priority": self.rng.randint(1, 10),
+            })
 
         self.current_time = 0
         self.done = False
@@ -36,6 +28,7 @@ class TaskMeshEnv:
         self.total_wait_time = 0
         self.total_completion_time = 0
         self.last_priorities = []
+
         return list(self.tasks)
 
     def step(self, action):

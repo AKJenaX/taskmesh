@@ -1,5 +1,4 @@
-import json
-from pathlib import Path
+from backend.scheduler.utils import load_learned_weights
 
 
 DEFAULT_WEIGHTS = {
@@ -7,9 +6,6 @@ DEFAULT_WEIGHTS = {
     "w_deadline": 0.5,
     "w_duration": 0.3,
 }
-
-WEIGHTS_FILE = Path(__file__).resolve().parent / "learned_weights.json"
-
 
 def _to_int(value, default=0):
     try:
@@ -22,18 +18,6 @@ def _get(task, key, default=0):
     if isinstance(task, dict):
         return task.get(key, default)
     return getattr(task, key, default)
-
-
-def _load_weights():
-    try:
-        data = json.loads(WEIGHTS_FILE.read_text(encoding="utf-8"))
-        return {
-            "w_priority": float(data.get("w_priority", DEFAULT_WEIGHTS["w_priority"])),
-            "w_deadline": float(data.get("w_deadline", DEFAULT_WEIGHTS["w_deadline"])),
-            "w_duration": float(data.get("w_duration", DEFAULT_WEIGHTS["w_duration"])),
-        }
-    except (FileNotFoundError, json.JSONDecodeError, TypeError, ValueError):
-        return dict(DEFAULT_WEIGHTS)
 
 
 def _normalize_tasks(tasks):
@@ -111,7 +95,7 @@ def run_rl(tasks):
             },
         }
 
-    weights = _load_weights()
+    weights = {**DEFAULT_WEIGHTS, **load_learned_weights()}
     normalized_tasks = _normalize_tasks(tasks)
     tasks_ordered = sorted(
         normalized_tasks,
