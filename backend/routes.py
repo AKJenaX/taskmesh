@@ -8,7 +8,7 @@ except Exception:
     run_rl = None
 
 try:
-    from backend.scheduler.rl_agent import run_baseline
+    from backend.scheduler.baseline import run_baseline
 except Exception:
     run_baseline = None
 
@@ -138,15 +138,19 @@ def simulate(payload: RequestModel) -> ResponseModel:
 
     try:
         algo = (payload.algorithm or "").strip().lower()
+        tasks = payload.tasks or []
 
         if algo == "baseline":
             func = run_baseline if run_baseline else run_baseline_stub
+
         elif algo == "rl":
             func = run_rl if run_rl else run_rl_stub
+
         else:
             return fallback
 
-        result = func(payload.tasks)
+        print(f"[DEBUG] Using function: {func.__name__}")
+        result = func(tasks)
 
         validated = validate_and_normalize(result)
         if validated is None:

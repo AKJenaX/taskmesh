@@ -1,4 +1,6 @@
 import json
+import math
+import random
 from pathlib import Path
 
 
@@ -101,24 +103,64 @@ def _compute_metrics(schedule):
 
 
 def run_rl(tasks):
-    if not tasks:
-        return {
-            "schedule": [],
-            "metrics": {
-                "avg_wait_time": 0,
-                "throughput": 0,
-                "tail_latency": 0,
-            },
-        }
-
     weights = _load_weights()
-    normalized_tasks = _normalize_tasks(tasks)
-    tasks_ordered = sorted(
-        normalized_tasks,
-        key=lambda task: _score_task(task, weights),
-        reverse=True,
-    )
-    schedule = _build_schedule(tasks_ordered)
+    tasks = _normalize_tasks(tasks or [])
+    schedule = []
+    current_time = 0
+
+    while tasks:
+        def score(task, current_time):
+            base = (
+                weights["w_priority"] * task["priority"]
+                - weights["w_duration"] * (task["duration"] ** 1.5)
+                - 0.5 * current_time
+            )
+
+            # urgency factor (different from baseline logic)
+            urgency = task["priority"] / (task["duration"] + 1)
+
+            # strong exploration noise (IMPORTANT)
+            noise = random.uniform(-2.0, 2.0)
+
+            return base + (2 * urgency) + noise
+
+        scores = [score(t, current_time) for t in tasks]
+
+        # normalize for stability
+        max_score = max(scores)
+        scores = [s - max_score for s in scores]
+
+        TEMPERATURE = 5.0
+
+        exp_scores = [math.exp(s / TEMPERATURE) for s in scores]
+        total = sum(exp_scores)
+
+        probs = [e / total for e in exp_scores]
+
+        # sample index
+        r = random.random()
+        cumulative = 0
+        chosen_index = 0
+
+        for i, p in enumerate(probs):
+            cumulative += p
+            if r <= cumulative:
+                chosen_index = i
+                break
+
+        next_task = tasks.pop(chosen_index)
+
+        start = current_time
+        end = current_time + next_task["duration"]
+        schedule.append(
+            {
+                "task_id": int(next_task["id"]),
+                "start": int(start),
+                "end": int(end),
+                "core": 0,
+            }
+        )
+        current_time = end
 
     return {
         "schedule": schedule,
@@ -127,23 +169,28 @@ def run_rl(tasks):
 
 
 def run_baseline(tasks):
-    if not tasks:
-        return {
-            "schedule": [],
-            "metrics": {
-                "avg_wait_time": 0,
-                "throughput": 0,
-                "tail_latency": 0,
-            },
-        }
+    remaining_tasks = _normalize_tasks(tasks or [])
+    schedule = []
+    current_time = 0
 
-    normalized_tasks = _normalize_tasks(tasks)
-    tasks_ordered = sorted(
-        normalized_tasks,
-        key=lambda task: task["priority"],
-        reverse=True,
-    )
-    schedule = _build_schedule(tasks_ordered)
+    while remaining_tasks:
+        next_task = max(
+            remaining_tasks,
+            key=lambda task: task["priority"] - 0.5 * task["duration"],
+        )
+        remaining_tasks.remove(next_task)
+
+        start = current_time
+        end = current_time + next_task["duration"]
+        schedule.append(
+            {
+                "task_id": int(next_task["id"]),
+                "start": int(start),
+                "end": int(end),
+                "core": 0,
+            }
+        )
+        current_time = end
 
     return {
         "schedule": schedule,
