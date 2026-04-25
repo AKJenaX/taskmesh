@@ -1,0 +1,100 @@
+document.addEventListener('DOMContentLoaded', () => {
+    // UI Elements
+    const loginScreen = document.getElementById('login-screen');
+    const dashboardScreen = document.getElementById('dashboard-screen');
+    const loginForm = document.getElementById('login-form');
+    const navItems = document.querySelectorAll('.nav-item');
+
+    /**
+     * Navigation Handling
+     */
+    function switchScreen(screenId) {
+        // Fade out active screen
+        const activeScreen = document.querySelector('.screen.active');
+        if (activeScreen) {
+            activeScreen.style.opacity = '0';
+            setTimeout(() => {
+                activeScreen.hidden = true;
+                activeScreen.classList.remove('active');
+                
+                // Show new screen
+                const targetScreen = document.getElementById(screenId);
+                targetScreen.hidden = false;
+                targetScreen.style.opacity = '0';
+                targetScreen.classList.add('active');
+                
+                // Trigger reflow for animation
+                void targetScreen.offsetWidth;
+                targetScreen.style.opacity = '1';
+            }, 400);
+        }
+    }
+
+    /**
+     * Login Logic
+     */
+    if (loginForm) {
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Simulating authentication process
+            const submitBtn = loginForm.querySelector('button[type="submit"]');
+            const originalContent = submitBtn.innerHTML;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span>CONNECTING...</span><span class="material-icons-outlined animate-spin">sync</span>';
+            
+            // Artificial delay for cinematic effect
+            setTimeout(() => {
+                switchScreen('dashboard-screen');
+            }, 1200);
+        });
+    }
+
+    /**
+     * Bottom Nav Interactions
+     */
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            navItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            
+            // Here you would handle internal dashboard routing
+            console.log('Navigating to:', item.querySelector('span:last-child').textContent);
+        });
+    });
+
+    /**
+     * Dashboard Dynamics (Demo updates)
+     */
+    function simulateRealtimeMetrics() {
+        if (!dashboardScreen.hidden) {
+            const latencyValue = document.querySelector('.metric-card:first-child .metric-value');
+            if (latencyValue) {
+                const current = parseInt(latencyValue.textContent);
+                const variance = Math.floor(Math.random() * 5) - 2;
+                latencyValue.textContent = `${Math.max(8, current + variance)}ms`;
+            }
+        }
+    }
+
+    // Update metrics every 3 seconds
+    setInterval(simulateRealtimeMetrics, 3000);
+
+    // Initial state setup
+    // For development/demo, we can skip login by uncommenting below:
+    // switchScreen('dashboard-screen');
+});
+
+// Add rotation animation for sync icon
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .animate-spin {
+        animation: spin 1s linear infinite;
+    }
+`;
+document.head.appendChild(style);

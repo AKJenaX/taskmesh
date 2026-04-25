@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TaskMesh - AI Dashboard</title>
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Orbitron:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <main class="dashboard-shell">
+    <section class="main-panel">
+      <header class="hero">
+        <div class="header-content">
+          <h1>TaskMesh AI</h1>
+        </div>
+      </header>
+
+      <section class="proof-strip">
+        <article>
+          <h3 class="proof-label">System Status</h3>
+          <p class="proof-value">ONLINE</p>
+        </article>
+        <article>
+          <h3 class="proof-label">Active Tasks</h3>
+          <p class="proof-value">247</p>
+        </article>
+        <article>
+          <h3 class="proof-label">Processing Queue</h3>
+          <p class="proof-value">12</p>
+        </article>
+      </section>
+
+      <section class="surface">
+        <h2>Task Configuration</h2>
+        <form class="task-form">
+          <div class="controls-grid">
+            <label for="task-name">Task Name</label>
+            <input id="task-name" type="text" placeholder="Enter AI task name">
+            
+            <label for="task-type">AI Model</label>
+            <select id="task-type">
+              <option>GPT-4</option>
+              <option>Claude-3</option>
+              <option>Local LLM</option>
+            </select>
+            
+            <label for="priority">Priority Level</label>
+            <input id="priority" type="range" min="1" max="10" value="5">
+          </div>
+          
+          <div class="actions">
+            <button type="submit">Execute Task</button>
+            <button type="button" class="button-secondary">Reset</button>
+          </div>
+        </form>
+        
+        <div class="status">
+          <span class="status-terminal">status: ready</span>
+        </div>
+      </section>
+
+      <section class="metrics">
+        <article class="metric-card">
+          <h3>Total Tasks</h3>
+          <p class="metric-value">1,847</p>
+        </article>
+        <article class="metric-card">
+          <h3>Success Rate</h3>
+          <p class="metric-value">98.3%</p>
+        </article>
+        <article class="metric-card">
+          <h3>AI Response</h3>
+          <p class="metric-value">142ms</p>
+        </article>
+      </section>
+
+      <section class="surface">
+        <h2>Task Output</h2>
+        <div class="table-wrap">
+          <table class="result-table">
+            <thead>
+              <tr>
+                <th>Task ID</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Duration</th>
+                <th>Result</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>TASK-001</td>
+                <td>Data Analysis</td>
+                <td class="status-success">Complete</td>
+                <td>2.3s</td>
+                <td class="code-output">{"status": "success", "data": [1,2,3,4,5]}</td>
+              </tr>
+              <tr>
+                <td>TASK-002</td>
+                <td>Model Training</td>
+                <td class="status-processing">Processing</td>
+                <td>45.7s</td>
+                <td class="code-output">{"status": "training", "progress": 67}</td>
+              </tr>
+              <tr>
+                <td>TASK-003</td>
+                <td>Report Generation</td>
+                <td class="status-success">Complete</td>
+                <td>1.1s</td>
+                <td class="code-output">{"report": "generated", "pages": 12}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="surface">
+        <h2>System Logs</h2>
+        <div class="result">
+          <div class="log-terminal">
+            <div class="log-line">[2024-04-25 13:47:23] <span class="log-success">✓</span> AI System initialized</div>
+            <div class="log-line">[2024-04-25 13:47:24] Loading task queue...</div>
+            <div class="log-line">[2024-04-25 13:47:31] <span class="log-info">ℹ</span> 247 tasks loaded</div>
+            <div class="log-line">[2024-04-25 13:47:45] <span class="log-success">✓</span> Neural network connected</div>
+            <div class="log-line">[2024-04-25 13:47:52] <span class="log-warning">⚠</span> High CPU usage detected</div>
+            <div class="log-line">[2024-04-25 13:48:15] <span class="log-error">✗</span> Task TASK-002 failed</div>
+            <div class="log-line">[2024-04-25 13:48:31] <span class="log-success">✓</span> Auto-scaling enabled</div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+</body>
+</html>

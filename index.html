@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TaskMesh</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="grid-overlay"></div>
+    <div class="cursor-glow"></div>
+    <div class="cursor-trail"></div>
+    <div class="cursor-light-ring"></div>
+    
+    <main id="dashboard-root" class="dashboard-shell">
+      <section class="main-panel">
+        <header class="hero">
+          <div class="header-content">
+            <h2>TaskMesh</h2>
+          </div>
+        </header>
+
+        <section class="proof-strip">
+          <article>
+            <p class="proof-label">Current Demo Stage</p>
+            <p id="proof-stage" class="proof-value">Stage 1</p>
+          </article>
+          <article>
+            <p class="proof-label">Latest Score</p>
+            <p id="proof-score" class="proof-value">--</p>
+          </article>
+          <article>
+            <p class="proof-label">Strategy</p>
+            <p id="proof-strategy" class="proof-value">baseline_priority</p>
+          </article>
+        </section>
+
+        <section class="surface">
+          <form id="task-form" class="task-form">
+            <div class="controls-grid">
+              <label for="api-url">API URL</label>
+              <input
+                id="api-url"
+                type="url"
+                value="http://localhost:8000"
+                placeholder="http://localhost:8000"
+              />
+
+              <label for="scenario-select">Scenario preset</label>
+              <select id="scenario-select">
+                <option value="balanced">Balanced (default)</option>
+                <option value="high_priority_burst">High-priority burst</option>
+                <option value="long_tail">Long-tail backlog</option>
+              </select>
+            </div>
+
+            <label for="tasks-input">Tasks (title,priority,duration_minutes)</label>
+            <textarea
+              id="tasks-input"
+              rows="10"
+              placeholder="One task per line: title,priority,duration_minutes&#10;Demo review,5,30&#10;Write slides,3,45&#10;Inbox cleanup,1,20"
+            ></textarea>
+            <div class="actions">
+              <button id="load-scenario" type="button" class="button-secondary">Load Scenario</button>
+              <button type="submit">Generate Schedule</button>
+            </div>
+          </form>
+
+          <div id="status" class="status"></div>
+          <div id="validation-errors" class="validation-errors"></div>
+        </section>
+
+        <section id="metrics" class="metrics" hidden>
+          <article class="metric-card">
+            <h3>Total Tasks</h3>
+            <p id="metric-total">0</p>
+          </article>
+          <article class="metric-card">
+            <h3>Avg Priority</h3>
+            <p id="metric-priority">0</p>
+          </article>
+          <article class="metric-card">
+            <h3>Total Duration</h3>
+            <p id="metric-duration">0 min</p>
+          </article>
+        </section>
+
+        <section class="judge-panel">
+          <article class="judge-card">
+            <h3>Judge Snapshot</h3>
+            <p id="judge-summary">Run a schedule to generate measurable results for your README and final demo.</p>
+          </article>
+          <article class="judge-card">
+            <h3>Benchmark Template</h3>
+            <p id="benchmark-template">No benchmark loaded yet. Run benchmark.py and paste real results.</p>
+          </article>
+        </section>
+
+        <section class="surface">
+          <h3>Ordered Tasks</h3>
+          <div class="table-wrap">
+            <table id="result-table" class="result-table">
+              <thead>
+                <tr>
+                  <th>Order</th>
+                  <th>Task</th>
+                  <th>Priority</th>
+                  <th>Duration (min)</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="surface">
+          <h3>Raw Response</h3>
+          <pre id="result" class="result"></pre>
+        </section>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

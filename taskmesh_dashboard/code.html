@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary": "#233144",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "on-error-container": "#ffdad6",
+                        "secondary-fixed": "#d3e4fe",
+                        "inverse-on-surface": "#283044",
+                        "secondary": "#b7c8e1",
+                        "on-primary-container": "#00422b",
+                        "on-surface-variant": "#bbcabf",
+                        "on-error": "#690005",
+                        "on-secondary": "#213145",
+                        "primary": "#4edea3",
+                        "on-primary-fixed-variant": "#005236",
+                        "surface-bright": "#31394d",
+                        "on-primary": "#003824",
+                        "inverse-primary": "#006c49",
+                        "on-secondary-container": "#a9bad3",
+                        "background": "#0b1326",
+                        "on-tertiary-container": "#2c3a4e",
+                        "surface-container-highest": "#2d3449",
+                        "surface-container-high": "#222a3d",
+                        "error-container": "#93000a",
+                        "surface-container-low": "#131b2e",
+                        "surface-container-lowest": "#060e20",
+                        "tertiary-container": "#95a4bb",
+                        "on-surface": "#dae2fd",
+                        "tertiary-fixed-dim": "#b9c7e0",
+                        "surface": "#0b1326",
+                        "error": "#ffb4ab",
+                        "tertiary-fixed": "#d5e3fd",
+                        "tertiary": "#b9c7e0",
+                        "on-primary-fixed": "#002113",
+                        "outline": "#86948a",
+                        "outline-variant": "#3c4a42",
+                        "on-tertiary-fixed": "#0d1c2f",
+                        "surface-variant": "#2d3449",
+                        "surface-tint": "#4edea3",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "surface-container": "#171f33",
+                        "secondary-container": "#3a4a5f",
+                        "on-secondary-fixed": "#0b1c30",
+                        "primary-container": "#10b981",
+                        "inverse-surface": "#dae2fd",
+                        "surface-dim": "#0b1326",
+                        "primary-fixed-dim": "#4edea3",
+                        "on-tertiary-fixed-variant": "#3a485c",
+                        "primary-fixed": "#6ffbbe",
+                        "on-background": "#dae2fd"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "stack-sm": "8px",
+                        "stack-lg": "32px",
+                        "gutter": "24px",
+                        "container-margin": "32px",
+                        "stack-md": "16px",
+                        "glass-padding": "20px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "title-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "label-caps": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "title-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-md": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(11, 19, 38, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .emerald-glow {
+            box-shadow: 0 0 15px rgba(78, 222, 163, 0.15);
+        }
+        .shimmer-border {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md selection:bg-primary/30">
+<!-- TopAppBar -->
+<header class="bg-slate-950/70 backdrop-blur-xl font-inter antialiased tracking-tight docked full-width top-0 z-50 border-b border-white/10 shadow-2xl shadow-black/50 flex justify-between items-center w-full px-6 py-4 sticky">
+<div class="flex items-center gap-4">
+<button class="active:scale-95 duration-200 text-emerald-500">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+</button>
+<h1 class="text-xl font-black text-white tracking-tighter">TaskMesh</h1>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-emerald-400 font-semibold font-inter text-body-sm transition-all duration-300" href="#">Dashboard</a>
+<a class="text-slate-400 hover:bg-white/5 hover:text-emerald-300 font-inter text-body-sm transition-all duration-300" href="#">Timeline</a>
+<a class="text-slate-400 hover:bg-white/5 hover:text-emerald-300 font-inter text-body-sm transition-all duration-300" href="#">Tasks</a>
+<a class="text-slate-400 hover:bg-white/5 hover:text-emerald-300 font-inter text-body-sm transition-all duration-300" href="#">Profile</a>
+</nav>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/20">
+<img alt="User avatar" class="w-full h-full object-cover" data-alt="Professional headshot of a focused software engineer with soft rim lighting and a neutral blurred tech background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWDia_E_AK4mogHivW-Ebb4CC5t59EFax1lKCHEX0z4q2_e_GH-H5eKvQT2QoHBzYRsaf649eTpZh0wpQFHxWirYf3eijNr7YDgw-x4kTdH6YhS59vAoGx2Ssjxq4xN4VWIkQX6jg10nkVwGJpfX9zpDwxk9E1d7mbIcpDcucrarxkg4oWny33FHjTCnN-s7oeaNdViYJ7CT86poan7lSAOoDHJQ_V3ZGPSS1mXNq6HrLSItjNmDq0eEWAmrvdXYMDYmkeRNKxr-s"/>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-container-margin py-stack-lg pb-32">
+<!-- Hero Section -->
+<section class="relative mb-stack-lg rounded-[32px] overflow-hidden bg-surface-container-low min-h-[300px] flex items-center">
+<div class="absolute inset-0 z-0">
+<div class="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-transparent z-10"></div>
+<img alt="Background Office" class="w-full h-full object-cover grayscale opacity-30" data-alt="Modern minimalist office space with large windows, soft morning light, and lush green plants reflecting a calm productivity environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAajnERlTvUy_aqGe6pdiPkMBk-3VfQYaew8kBX_RvwtuXRCo2C_qqDi-GmHsz3kwp7s4itl-Rdj8bgvdoxi0F940sYcJ0cOPt-YdMv1B2-W9m9s10BiY5LKAxMmqt93U5WyOoKWCUZub43mkqGmXYsoHT6H3_msmjW5q-qigLFLv8LXKChy_ktEGQSU1K7iF8y4VZu6-upkKMPvUE6YGCvp7MLdmatx_budm0xCfeXNZ7KHt-F1E6CA35jnYYI0gdR3U-kv96lnrc"/>
+</div>
+<div class="relative z-20 px-12 py-16 max-w-2xl">
+<span class="text-primary font-label-caps tracking-widest bg-primary/10 px-3 py-1 rounded-full mb-4 inline-block">PERFORMANCE HUB</span>
+<h2 class="font-display-lg text-display-lg text-white mb-4">Master Your Flow.</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-lg mb-8">
+                    Orchestrate complex schedules with the precision of a high-performance instrument. TaskMesh provides the clarity needed for deep work.
+                </p>
+<div class="flex gap-4">
+<button class="bg-gradient-to-v from-primary to-primary-container text-on-primary px-6 py-3 rounded-xl font-title-sm hover:opacity-90 transition-all active:scale-95 flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]" data-icon="add_circle">add_circle</span>
+                        New Task
+                    </button>
+<button class="border border-white/10 hover:bg-white/5 px-6 py-3 rounded-xl font-title-sm text-white transition-all">
+                        View Analytics
+                    </button>
+</div>
+</div>
+</section>
+<!-- Metrics Strip -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-stack-lg">
+<div class="glass-card shimmer-border rounded-2xl p-glass-padding flex items-center justify-between">
+<div>
+<p class="text-slate-400 font-label-caps mb-1">Total Tasks</p>
+<h3 class="text-headline-md font-headline-md text-white">42</h3>
+</div>
+<div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl" data-icon="checklist">checklist</span>
+</div>
+</div>
+<div class="glass-card shimmer-border rounded-2xl p-glass-padding flex items-center justify-between">
+<div>
+<p class="text-slate-400 font-label-caps mb-1">Avg Priority</p>
+<h3 class="text-headline-md font-headline-md text-white">High</h3>
+</div>
+<div class="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+<span class="material-symbols-outlined text-3xl" data-icon="priority_high">priority_high</span>
+</div>
+</div>
+<div class="glass-card shimmer-border rounded-2xl p-glass-padding flex items-center justify-between">
+<div>
+<p class="text-slate-400 font-label-caps mb-1">Duration</p>
+<h3 class="text-headline-md font-headline-md text-white">18.5h</h3>
+</div>
+<div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
+<span class="material-symbols-outlined text-3xl" data-icon="schedule">schedule</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Task Input Form -->
+<aside class="lg:col-span-4">
+<div class="glass-card shimmer-border rounded-[32px] p-glass-padding sticky top-24">
+<h4 class="font-title-sm text-title-sm text-white mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="edit_square">edit_square</span>
+                        Quick Entry
+                    </h4>
+<form class="space-y-stack-md">
+<div>
+<label class="font-label-caps text-slate-400 block mb-2">Task Title</label>
+<input class="w-full bg-surface-container-low border-white/5 rounded-2xl p-4 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-primary/50 focus:border-transparent outline-none transition-all" placeholder="What needs to be done?" type="text"/>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="font-label-caps text-slate-400 block mb-2">Priority</label>
+<select class="w-full bg-surface-container-low border-white/5 rounded-2xl p-4 text-white focus:ring-2 focus:ring-primary/50 outline-none">
+<option>Low</option>
+<option>Medium</option>
+<option>High</option>
+</select>
+</div>
+<div>
+<label class="font-label-caps text-slate-400 block mb-2">Duration (min)</label>
+<input class="w-full bg-surface-container-low border-white/5 rounded-2xl p-4 text-white focus:ring-2 focus:ring-primary/50 outline-none" placeholder="30" type="number"/>
+</div>
+</div>
+<button class="w-full bg-primary text-on-primary py-4 rounded-2xl font-title-sm emerald-glow hover:brightness-110 active:scale-95 transition-all mt-4" type="submit">
+                            Deploy Task
+                        </button>
+</form>
+<div class="mt-8 pt-8 border-t border-white/5">
+<p class="font-label-caps text-slate-400 mb-4">SUGGESTED FOR TODAY</p>
+<div class="space-y-3">
+<div class="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-slate-500 group-hover:text-primary transition-colors" data-icon="lightbulb">lightbulb</span>
+<span class="text-body-sm text-slate-300">Review project architecture</span>
+</div>
+<div class="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-slate-500 group-hover:text-primary transition-colors" data-icon="coffee">coffee</span>
+<span class="text-body-sm text-slate-300">Daily sync with dev team</span>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Ordered Tasks Table -->
+<section class="lg:col-span-8">
+<div class="glass-card shimmer-border rounded-[32px] overflow-hidden">
+<div class="px-glass-padding pt-glass-padding pb-6 flex justify-between items-center">
+<div>
+<h4 class="font-title-sm text-title-sm text-white">Ordered Tasks</h4>
+<p class="text-body-sm text-slate-400">Prioritized by urgency and impact</p>
+</div>
+<div class="flex gap-2">
+<button class="p-2 rounded-lg hover:bg-white/5 text-slate-400">
+<span class="material-symbols-outlined" data-icon="filter_list">filter_list</span>
+</button>
+<button class="p-2 rounded-lg hover:bg-white/5 text-slate-400">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="border-b border-white/5">
+<th class="px-glass-padding py-4 font-label-caps text-slate-500">STATUS</th>
+<th class="px-4 py-4 font-label-caps text-slate-500">TASK IDENTIFIER</th>
+<th class="px-4 py-4 font-label-caps text-slate-500">PRIORITY</th>
+<th class="px-4 py-4 font-label-caps text-slate-500">DURATION</th>
+<th class="px-glass-padding py-4 font-label-caps text-slate-500 text-right">ACTIONS</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/5">
+<tr class="hover:bg-white/5 transition-all">
+<td class="px-glass-padding py-6">
+<div class="w-8 h-8 rounded-full border-2 border-primary/40 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-sm" data-icon="check" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</td>
+<td class="px-4 py-6">
+<p class="text-body-md text-white font-medium">Refactor Authentication Flow</p>
+<span class="text-[12px] text-slate-500">DEV-7429</span>
+</td>
+<td class="px-4 py-6">
+<span class="bg-error-container/20 text-error px-3 py-1 rounded-full text-[12px] font-semibold border border-error/20">CRITICAL</span>
+</td>
+<td class="px-4 py-6 text-slate-300 font-body-sm">4h 30m</td>
+<td class="px-glass-padding py-6 text-right">
+<button class="text-slate-500 hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="open_in_new">open_in_new</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-white/5 transition-all">
+<td class="px-glass-padding py-6">
+<div class="w-8 h-8 rounded-full border-2 border-slate-700 flex items-center justify-center text-slate-700">
+<span class="material-symbols-outlined text-sm" data-icon="radio_button_unchecked">radio_button_unchecked</span>
+</div>
+</td>
+<td class="px-4 py-6">
+<p class="text-body-md text-white font-medium">Update Brand Guidelines</p>
+<span class="text-[12px] text-slate-500">DES-1102</span>
+</td>
+<td class="px-4 py-6">
+<span class="bg-tertiary-container/20 text-tertiary-fixed px-3 py-1 rounded-full text-[12px] font-semibold border border-tertiary/20">MEDIUM</span>
+</td>
+<td class="px-4 py-6 text-slate-300 font-body-sm">1h 15m</td>
+<td class="px-glass-padding py-6 text-right">
+<button class="text-slate-500 hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="open_in_new">open_in_new</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-white/5 transition-all">
+<td class="px-glass-padding py-6">
+<div class="w-8 h-8 rounded-full border-2 border-slate-700 flex items-center justify-center text-slate-700">
+<span class="material-symbols-outlined text-sm" data-icon="radio_button_unchecked">radio_button_unchecked</span>
+</div>
+</td>
+<td class="px-4 py-6">
+<p class="text-body-md text-white font-medium">Optimize Database Queries</p>
+<span class="text-[12px] text-slate-500">OPS-993</span>
+</td>
+<td class="px-4 py-6">
+<span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-[12px] font-semibold border border-primary/20">HIGH</span>
+</td>
+<td class="px-4 py-6 text-slate-300 font-body-sm">2h 45m</td>
+<td class="px-glass-padding py-6 text-right">
+<button class="text-slate-500 hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="open_in_new">open_in_new</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-white/5 transition-all">
+<td class="px-glass-padding py-6">
+<div class="w-8 h-8 rounded-full border-2 border-primary/40 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-sm" data-icon="check" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</td>
+<td class="px-4 py-6">
+<p class="text-body-md text-white font-medium">Client Presentation Prep</p>
+<span class="text-[12px] text-slate-500">SALES-42</span>
+</td>
+<td class="px-4 py-6">
+<span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-[12px] font-semibold border border-primary/20">HIGH</span>
+</td>
+<td class="px-4 py-6 text-slate-300 font-body-sm">50m</td>
+<td class="px-glass-padding py-6 text-right">
+<button class="text-slate-500 hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="open_in_new">open_in_new</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-6 border-t border-white/5 flex justify-center">
+<button class="text-primary font-body-sm hover:underline">View All Active Tasks</button>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="md:hidden bg-slate-950/80 backdrop-blur-2xl fixed bottom-0 w-full z-50 rounded-t-[32px] border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.4)] flex justify-around items-center px-4 pb-6 pt-3">
+<a class="flex flex-col items-center justify-center bg-emerald-500/15 text-emerald-400 rounded-2xl px-5 py-2 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-inter text-[11px] font-medium tracking-wide">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 px-5 py-2 hover:text-emerald-300 transition-colors active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+<span class="font-inter text-[11px] font-medium tracking-wide">Timeline</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 px-5 py-2 hover:text-emerald-300 transition-colors active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="checklist">checklist</span>
+<span class="font-inter text-[11px] font-medium tracking-wide">Tasks</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 px-5 py-2 hover:text-emerald-300 transition-colors active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-inter text-[11px] font-medium tracking-wide">Profile</span>
+</a>
+</nav>
+<!-- FAB for Task Entry (Contextual for Dashboard) -->
+<button class="fixed bottom-24 right-8 md:bottom-12 md:right-12 w-16 h-16 rounded-full bg-primary text-on-primary shadow-2xl shadow-primary/20 flex items-center justify-center active:scale-95 transition-all z-40 lg:hidden">
+<span class="material-symbols-outlined text-3xl" data-icon="add">add</span>
+</button>
+</body></html>
