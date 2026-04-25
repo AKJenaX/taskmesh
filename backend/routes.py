@@ -1,6 +1,9 @@
 from fastapi import APIRouter
+import logging
 
 from backend.schemas import Metrics, RequestModel, ResponseModel, ScheduleItem
+
+logger = logging.getLogger(__name__)
 
 try:
     from backend.scheduler.adaptive_scheduler import run_rl
@@ -34,7 +37,7 @@ def run_baseline_stub(tasks):
                 "task_id": first_task.id,
                 "start": 0,
                 "end": first_task.duration,
-                "core": 0,
+                "score": 0.0,
             }
         ],
         "metrics": {
@@ -67,16 +70,18 @@ def validate_and_normalize(result):
         if not isinstance(item, dict):
             return None
 
-        required_schedule_fields = ("task_id", "start", "end", "core")
+        required_schedule_fields = ("task_id", "start", "end", "score")
         if any(field not in item for field in required_schedule_fields):
             return None
 
         task_id = item["task_id"]
         start = item["start"]
         end = item["end"]
-        core = item["core"]
+        score = item["score"]
 
-        if not all(isinstance(value, int) for value in (task_id, start, end, core)):
+        if not all(isinstance(value, int) for value in (task_id, start, end)):
+            return None
+        if not isinstance(score, (int, float)):
             return None
 
         validated_schedule.append(
@@ -84,7 +89,7 @@ def validate_and_normalize(result):
                 "task_id": task_id,
                 "start": start,
                 "end": end,
-                "core": core,
+                "score": float(score),
             }
         )
 
@@ -166,17 +171,21 @@ def simulate(payload: RequestModel) -> ResponseModel:
             schedule=[ScheduleItem(**item) for item in validated["schedule"]],
             metrics=Metrics(**normalized_metrics),
         )
-    except Exception:
+    except Exception as e:
+        logger.error(f"Simulate endpoint crashed: {e}", exc_info=True)
         return fallback
 
 
-@router.post("/schedule")
+@router.post("/schedule", response_model=ResponseModel)
 def schedule(payload: RequestModel):
-    fallback = {
-        "ordered_tasks": [],
-        "score": 0,
-        "strategy": "error",
-    }
+    fallback = ResponseModel(
+        schedule=[],
+        metrics=Metrics(
+            avg_wait_time=0,
+            throughput=0,
+            tail_latency=0,
+        ),
+    )
 
     try:
         algo = (payload.algorithm or "").strip().lower()
@@ -190,13 +199,16 @@ def schedule(payload: RequestModel):
         if validated is None:
             return fallback
 
-        ordered_tasks = [item["task_id"] for item in validated["schedule"]]
-        score = int(validated["metrics"]["throughput"])
-
-        return {
-            "ordered_tasks": ordered_tasks,
-            "score": score,
-            "strategy": payload.algorithm,
+        normalized_metrics = {
+            "avg_wait_time": int(validated["metrics"]["avg_wait_time"]),
+            "throughput": int(validated["metrics"]["throughput"]),
+            "tail_latency": int(validated["metrics"]["tail_latency"]),
         }
-    except Exception:
+
+        return ResponseModel(
+            schedule=[ScheduleItem(**item) for item in validated["schedule"]],
+            metrics=Metrics(**normalized_metrics),
+        )
+    except Exception as e:
+        logger.error(f"Schedule endpoint crashed: {e}", exc_info=True)
         return fallback

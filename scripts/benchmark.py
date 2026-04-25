@@ -10,12 +10,17 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 
-tasks = [
-    {"id": 1, "duration": 8, "priority": 1},
-    {"id": 2, "duration": 2, "priority": 3},
-    {"id": 3, "duration": 6, "priority": 2},
-    {"id": 4, "duration": 1, "priority": 3},
-]
+import random
+
+num_tasks = random.randint(10, 15)
+tasks = []
+for i in range(num_tasks):
+    tasks.append({
+        "id": i + 1,
+        "duration": random.randint(1, 10),
+        "priority": random.randint(1, 5),
+        "deadline": random.randint(5, 50)
+    })
 
 baseline_result = run_baseline(copy.deepcopy(tasks))
 

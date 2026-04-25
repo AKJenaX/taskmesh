@@ -15,7 +15,7 @@ def baseline_schedule(tasks):
             "task_id": task["id"],
             "start": start,
             "end": end,
-            "core": 0
+            "score": 0.0
         })
 
         current_time = end
@@ -87,7 +87,7 @@ def run_baseline(tasks):
                 "task_id": int(next_task["id"]),
                 "start": int(start),
                 "end": int(end),
-                "core": 0,
+                "score": 0.0,
             }
         )
         current_time = end

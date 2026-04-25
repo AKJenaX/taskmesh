@@ -63,7 +63,7 @@ def _build_schedule(tasks_ordered):
                 "task_id": int(task["id"]),
                 "start": int(start),
                 "end": int(end),
-                "core": 0,
+                "score": 0.0,
             }
         )
         current_time = end
@@ -162,7 +162,7 @@ def run_rl(tasks):
                 "task_id": int(next_task["id"]),
                 "start": int(start),
                 "end": int(end),
-                "core": 0,
+                "score": 0.0,
             }
         )
 
@@ -192,7 +192,7 @@ def run_baseline(tasks):
                 "task_id": int(next_task["id"]),
                 "start": int(start),
                 "end": int(end),
-                "core": 0,
+                "score": 0.0,
             }
         )
         current_time = end

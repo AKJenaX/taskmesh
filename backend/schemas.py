@@ -18,7 +18,7 @@ class ScheduleItem(BaseModel):
     task_id: int
     start: int
     end: int
-    core: int
+    score: float
 
 
 class Metrics(BaseModel):
