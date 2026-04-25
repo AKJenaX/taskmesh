@@ -367,6 +367,9 @@ function showDashboard() {
 function initDashboard() {
   showDashboard();
   if (!uiBound) {
+    if (apiUrlInput) {
+      apiUrlInput.value = window.location.origin;
+    }
     bindUiEvents();
     uiBound = true;
   }
