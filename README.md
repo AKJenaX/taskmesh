@@ -64,6 +64,15 @@ Use:
 
 ---
 
+## Phase 7 - Reproducible Training
+
+Colab Notebook:
+https://colab.research.google.com/drive/1zyUb5QCTzeQbBUSEdReoh9T8iEZLQOGB#scrollTo=zpqYcbqRbflH
+
+This notebook allows end-to-end execution of the training pipeline with reward-based learning and visualization.
+
+---
+
 ## 📈 Training Curve
 
 Reward improved from -67 to -9.6 over 200 episodes.
