@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from backend.schemas import Metrics, RequestModel, ResponseModel, ScheduleItem
 
 try:
-    from backend.scheduler.rl_agent import run_rl
+    from backend.scheduler.adaptive_scheduler import run_rl
 except Exception:
     run_rl = None
 

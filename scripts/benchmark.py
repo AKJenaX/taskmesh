@@ -1,4 +1,4 @@
-from backend.scheduler.rl_agent import run_rl
+from backend.scheduler.adaptive_scheduler import run_rl
 from backend.scheduler.baseline import run_baseline
 import matplotlib.pyplot as plt
 import statistics

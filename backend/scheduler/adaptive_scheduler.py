@@ -89,6 +89,48 @@ def _compute_metrics(schedule):
     }
 
 
+def select_action(state, weights, current_time):
+    """
+    Policy function: maps state -> action
+    """
+    def score(task):
+        base = (
+            weights["w_priority"] * task["priority"]
+            - weights["w_duration"] * (task["duration"] ** 1.5)
+            - 0.5 * current_time
+        )
+
+        urgency = task["priority"] / (task["duration"] + 1)
+
+        noise = random.uniform(-2.0, 2.0)
+
+        return base + (2 * urgency) + noise
+
+    scores = [score(t) for t in state]
+
+    # normalize for softmax stability
+    max_score = max(scores)
+    scores = [s - max_score for s in scores]
+
+    TEMPERATURE = 5.0
+    exp_scores = [math.exp(s / TEMPERATURE) for s in scores]
+    total = sum(exp_scores)
+    probs = [e / total for e in exp_scores]
+
+    # sample
+    r = random.random()
+    cumulative = 0
+    chosen_index = 0
+
+    for i, p in enumerate(probs):
+        cumulative += p
+        if r <= cumulative:
+            chosen_index = i
+            break
+
+    return chosen_index
+
+
 def run_rl(tasks):
     if not tasks:
         return {
@@ -108,41 +150,7 @@ def run_rl(tasks):
     current_time = 0
 
     while tasks:
-
-        def score(task):
-            base = (
-                weights["w_priority"] * task["priority"]
-                - weights["w_duration"] * (task["duration"] ** 1.5)
-                - 0.5 * current_time
-            )
-
-            urgency = task["priority"] / (task["duration"] + 1)
-
-            noise = random.uniform(-2.0, 2.0)
-
-            return base + (2 * urgency) + noise
-
-        scores = [score(t) for t in tasks]
-
-        # normalize for softmax stability
-        max_score = max(scores)
-        scores = [s - max_score for s in scores]
-
-        TEMPERATURE = 5.0
-        exp_scores = [math.exp(s / TEMPERATURE) for s in scores]
-        total = sum(exp_scores)
-        probs = [e / total for e in exp_scores]
-
-        # sample
-        r = random.random()
-        cumulative = 0
-        chosen_index = 0
-
-        for i, p in enumerate(probs):
-            cumulative += p
-            if r <= cumulative:
-                chosen_index = i
-                break
+        chosen_index = select_action(tasks, weights, current_time)
 
         next_task = tasks.pop(chosen_index)
 

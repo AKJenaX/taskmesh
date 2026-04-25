@@ -99,7 +99,9 @@ def main():
     random.seed(SEED)
     
     episodes = 200
-    rewards_history = []
+    episode_rewards = []
+    best_reward = float("-inf")
+    best_weights_dict = dict(BEST_WEIGHTS)
     milestone_episodes = {1, 50, 100, 150, 200}
     print("Episode\tReward\tBestReward")
     
@@ -120,17 +122,20 @@ def main():
         }
 
         # environment + reward
-        reward, _ = evaluate_weights(tasks, weights)
-        rewards_history.append(reward)
+        total_reward, _ = evaluate_weights(tasks, weights)
+        episode_rewards.append(total_reward)
 
         # update best weights
-        if reward > BEST_REWARD:
-            BEST_REWARD = reward
+        if total_reward > best_reward:
+            best_reward = total_reward
+            best_weights_dict = weights.copy()
+            BEST_REWARD = best_reward
             BEST_WEIGHTS = dict(weights)
 
-        print(f"{ep}\t{reward:.2f}\t{BEST_REWARD:.2f}")
-        if ep in milestone_episodes:
-            print(f"Episode {ep} -> reward: {reward:.2f}")
+        print(f"{ep}\t{total_reward:.2f}\t{best_reward:.2f}")
+        
+        if ep % 20 == 0:
+            print(f"Episode {ep} -> reward {total_reward:.2f}, best {best_reward:.2f}")
 
     benchmark_tasks = benchmark_like_tasks()
     best_order = ordered_tasks_with_weights(benchmark_tasks, BEST_WEIGHTS)
@@ -142,15 +147,19 @@ def main():
         BEST_WEIGHTS["w_deadline"] = min(BEST_WEIGHTS["w_deadline"], 0.2)
 
     WEIGHTS_FILE.write_text(json.dumps(BEST_WEIGHTS, indent=2), encoding="utf-8")
-    first_window = sum(rewards_history[:20]) / 20
-    last_window = sum(rewards_history[-20:]) / 20
+    first_window = sum(episode_rewards[:20]) / 20
+    last_window = sum(episode_rewards[-20:]) / 20
     trend = last_window - first_window
     if trend < 0:
         trend = abs(trend)
+    print("Training complete")
+    print(f"Best reward achieved: {best_reward:.2f}")
     print(f"\nBest weights: {BEST_WEIGHTS}")
-    print(f"Best reward: {BEST_REWARD:.2f}")
     print(f"Improvement trend (last20-first20): {trend:.2f}")
     print(f"Saved learned weights to: {WEIGHTS_FILE}")
+    
+    with open("scripts/rewards.json", "w") as f:
+        json.dump(episode_rewards, f)
 
 if __name__ == "__main__":
     main()
