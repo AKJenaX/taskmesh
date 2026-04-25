@@ -31,18 +31,19 @@
   display: none !important;
 }
 
-html, body {
+html {
   margin: 0;
   padding: 0;
   height: 100%;
-  max-height: 100vh;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
   cursor: none !important;
 }
 
 body {
-  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
@@ -327,11 +328,9 @@ body::after {
 }
 
 .dashboard-shell {
-  min-height: 100vh;
-  max-height: 100vh;
+  height: 100%;
   display: block !important;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
   visibility: visible !important;
 }
 
@@ -343,7 +342,7 @@ body::after {
   position: relative;
   z-index: 2;
   max-width: 1200px;
-  max-height: calc(100vh - 64px);
+  height: 100%;
   margin: 0 auto;
   border-radius: 24px;
   border: 1px solid rgba(0, 229, 255, 0.15);
@@ -351,6 +350,10 @@ body::after {
   backdrop-filter: blur(20px);
   box-shadow: var(--glow-cyan);
   overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  scrollbar-gutter: stable;
+  grid-template-rows: auto 1fr;
 }
 
 .header-content {
@@ -427,6 +430,7 @@ body::after {
   box-shadow: var(--glow-cyan);
   backdrop-filter: blur(20px);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
 }
 
 .surface:hover {
@@ -479,6 +483,7 @@ select {
   font-family: var(--font-code);
   transition: all 0.2s ease;
   resize: vertical;
+  box-sizing: border-box;
 }
 
 
@@ -493,6 +498,17 @@ select:focus {
 
 textarea {
   resize: vertical;
+}
+
+select option {
+  background: #0a1628;
+  color: #ffffff;
+  padding: 10px 8px;
+}
+
+select option:hover {
+  background: #00e5ff;
+  color: #0a1628;
 }
 
 .actions {
