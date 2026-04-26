@@ -3,6 +3,12 @@ import math
 import random
 from pathlib import Path
 
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import torch
+
+tokenizer = AutoTokenizer.from_pretrained("distilgpt2")
+model = AutoModelForCausalLM.from_pretrained("distilgpt2")
+
 from backend.scheduler.utils import load_learned_weights
 
 
@@ -93,6 +99,39 @@ def select_action(state, weights, current_time):
     """
     Policy function: maps state -> action
     """
+    # --- LLM INFERENCE (MINIMAL INTEGRATION) ---
+    try:
+        # use globally loaded model
+        # tokenizer and model already available
+
+        prompt = "Tasks:\n"
+        for i, t in enumerate(state):
+            prompt += f"{i}: priority={t['priority']}, duration={t['duration']}\n"
+        prompt += "Select best task index:"
+
+        inputs = tokenizer(prompt, return_tensors="pt")
+
+        with torch.no_grad():
+            outputs = model.generate(
+                **inputs,
+                max_new_tokens=2,
+                do_sample=False
+            )
+
+        response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+        import re
+        match = re.findall(r"\d+", response)
+
+        if match:
+            idx = int(match[-1])
+            if 0 <= idx < len(state):
+                return idx
+
+    except Exception:
+        pass
+    # --- END LLM INTEGRATION ---
+
     def score(task):
         base = (
             weights["w_priority"] * task["priority"]
