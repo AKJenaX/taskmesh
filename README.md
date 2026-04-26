@@ -1,7 +1,7 @@
 # 🚀 TaskMesh
 ### OpenEnv Hackathon India 2026 Submission
 
-![RL Training Progress](assets/reward_curve.png)
+![RL Training Progress](assets/reward_curve_final.png)
 
 ---
 
