@@ -1,457 +1,438 @@
-// Elegant cursor movement effect
-const cursorGlow = document.querySelector('.cursor-glow');
-const cursorTrail = document.querySelector('.cursor-trail');
-const cursorLightRing = document.querySelector('.cursor-light-ring');
-let mouseX = 0, mouseY = 0;
-let glowX = 0, glowY = 0;
-let trailX = 0, trailY = 0;
-let lastParticleTime = 0;
-let lastRingTime = 0;
+/**
+ * TaskMesh Data Story JS Logic - Guided Dashboard
+ */
 
-document.addEventListener('mousemove', (e) => {
-  mouseX = e.clientX;
-  mouseY = e.clientY;
-  
-  // Show cursor effects
-  cursorGlow.style.opacity = '1';
-  cursorTrail.style.opacity = '1';
-  
-  // Create light particles periodically
-  const currentTime = Date.now();
-  if (currentTime - lastParticleTime > 50) {
-    createLightParticle(mouseX, mouseY);
-    lastParticleTime = currentTime;
-  }
-  
-  // Create expanding rings periodically
-  if (currentTime - lastRingTime > 800) {
-    createLightRing(mouseX, mouseY);
-    lastRingTime = currentTime;
-  }
-});
+document.addEventListener("DOMContentLoaded", () => {
+  // DOM Variables
+  const uiQueue = document.getElementById("ui-queue");
+  const resultTableBody = document.querySelector("#result-table tbody");
+  const runBtnTop = document.getElementById("run-scheduler-btn");
+  const btnText = runBtnTop.querySelector(".btn-text");
+  const btnSpinner = runBtnTop.querySelector(".spinner");
+  const globalStatus = document.getElementById("global-status");
+  const resultsWrapper = document.getElementById("results-wrapper");
+  const emptyResultsState = document.getElementById("empty-results-state");
 
-document.addEventListener('mouseleave', () => {
-  cursorGlow.style.opacity = '0';
-  cursorTrail.style.opacity = '0';
-});
+  // Input Controls
+  const addTaskBtn = document.getElementById("ui-add-task");
+  const uiTaskName = document.getElementById("ui-task-name");
+  const priorityBtns = document.querySelectorAll("#ui-priority .btn-toggle");
+  const durationBtns = document.querySelectorAll("#ui-duration .btn-toggle");
+  const customPriority = document.getElementById("custom-priority");
+  const customDuration = document.getElementById("custom-duration");
+  const priGroup = document.getElementById("priority-group");
+  const durGroup = document.getElementById("duration-group");
+  const scenarioBtns = document.querySelectorAll("#ui-scenarios .pill");
+  const errorMsg = document.getElementById("validation-errors");
 
-// Create light particle effect
-function createLightParticle(x, y) {
-  const particle = document.createElement('div');
-  particle.className = 'cursor-light-particle';
-  
-  // Random offset from cursor position
-  const offsetX = (Math.random() - 0.5) * 30;
-  const offsetY = (Math.random() - 0.5) * 30;
-  
-  particle.style.left = (x + offsetX) + 'px';
-  particle.style.top = (y + offsetY) + 'px';
-  particle.style.opacity = '1';
-  
-  document.body.appendChild(particle);
-  
-  // Remove particle after animation
-  setTimeout(() => {
-    particle.remove();
-  }, 1000);
-}
+  // Metrics
+  const metricWait = document.getElementById("metric-wait");
+  const impactWait = document.getElementById("impact-wait");
+  const metricThroughput = document.getElementById("metric-throughput");
+  const impactThroughput = document.getElementById("impact-throughput");
+  const metricLatency = document.getElementById("metric-latency");
+  const impactLatency = document.getElementById("impact-latency");
+  const dynamicInsight = document.getElementById("dynamic-insight");
+  const headlineText = document.getElementById("headline-text");
 
-// Create expanding ring effect
-function createLightRing(x, y) {
-  const ring = document.createElement('div');
-  ring.className = 'cursor-light-ring';
-  
-  ring.style.left = x + 'px';
-  ring.style.top = y + 'px';
-  ring.style.opacity = '1';
-  
-  document.body.appendChild(ring);
-  
-  // Remove ring after animation
-  setTimeout(() => {
-    ring.remove();
-  }, 1000);
-}
+  // Chart Instances
+  let timelineChart = null;
+  let comparisonChart = null;
 
-// Smooth animation for cursor glow
-function animateCursorGlow() {
-  glowX += (mouseX - glowX) * 0.08;
-  glowY += (mouseY - glowY) * 0.08;
-  
-  cursorGlow.style.left = glowX + 'px';
-  cursorGlow.style.top = glowY + 'px';
-  
-  requestAnimationFrame(animateCursorGlow);
-}
+  // State
+  let taskQueue = [];
+  let taskIdCounter = 1;
+  let currentPriority = 3;
+  let currentDuration = 30;
 
-// Smooth animation for cursor trail
-function animateCursorTrail() {
-  trailX += (mouseX - trailX) * 0.25;
-  trailY += (mouseY - trailY) * 0.25;
-  
-  cursorTrail.style.left = trailX + 'px';
-  cursorTrail.style.top = trailY + 'px';
-  cursorTrail.style.transform = 'translate(-50%, -50%)';
-  
-  requestAnimationFrame(animateCursorTrail);
-}
+  // Constants
+  const PRIORITY_COLORS = {
+    5: 'rgba(139, 92, 246, 0.8)', // Purple (High)
+    4: 'rgba(139, 92, 246, 0.6)',
+    3: 'rgba(0, 229, 255, 0.8)',  // Cyan (Med)
+    2: 'rgba(0, 229, 255, 0.5)',
+    1: 'rgba(148, 163, 184, 0.6)' // Gray (Low)
+  };
 
-// Add click effect
-document.addEventListener('click', (e) => {
-  createLightRing(e.clientX, e.clientY);
-  
-  // Create burst of particles on click
-  for (let i = 0; i < 8; i++) {
-    setTimeout(() => {
-      createLightParticle(e.clientX, e.clientY);
-    }, i * 30);
-  }
-});
+  const SCENARIOS = {
+    balanced: [
+      { title: "Demo review", priority: 5, duration: 30 },
+      { title: "Write slides", priority: 3, duration: 45 },
+      { title: "Inbox cleanup", priority: 1, duration: 20 },
+    ],
+    high_priority_burst: [
+      { title: "Production patch", priority: 5, duration: 25 },
+      { title: "Incident postmortem", priority: 5, duration: 35 },
+      { title: "Customer callback", priority: 4, duration: 20 },
+      { title: "Backlog grooming", priority: 2, duration: 30 },
+    ],
+    long_tail: [
+      { title: "Architecture RFC", priority: 4, duration: 90 },
+      { title: "Tech debt cleanup", priority: 2, duration: 60 },
+      { title: "Docs update", priority: 1, duration: 20 },
+      { title: "QA rerun", priority: 3, duration: 45 },
+      { title: "Sprint planning", priority: 2, duration: 50 },
+    ],
+  };
 
-// Start cursor animations
-animateCursorGlow();
-animateCursorTrail();
-
-const dashboardRoot = document.getElementById("dashboard-root");
-
-const form = document.getElementById("task-form");
-const input = document.getElementById("tasks-input");
-const apiUrlInput = document.getElementById("api-url");
-const scenarioSelect = document.getElementById("scenario-select");
-const loadScenarioButton = document.getElementById("load-scenario");
-const statusBox = document.getElementById("status");
-const validationErrorsBox = document.getElementById("validation-errors");
-const resultBox = document.getElementById("result");
-const metricsSection = document.getElementById("metrics");
-const metricTotal = document.getElementById("metric-total");
-const metricPriority = document.getElementById("metric-priority");
-const metricDuration = document.getElementById("metric-duration");
-const resultTableBody = document.querySelector("#result-table tbody");
-const proofStage = document.getElementById("proof-stage");
-const proofScore = document.getElementById("proof-score");
-const proofStrategy = document.getElementById("proof-strategy");
-const judgeSummary = document.getElementById("judge-summary");
-const benchmarkTemplate = document.getElementById("benchmark-template");
-let uiBound = false;
-const requiredElements = [
-  form,
-  input,
-  apiUrlInput,
-  scenarioSelect,
-  loadScenarioButton,
-  statusBox,
-  validationErrorsBox,
-  resultBox,
-  metricsSection,
-  metricTotal,
-  metricPriority,
-  metricDuration,
-  resultTableBody,
-  proofStage,
-  proofScore,
-  proofStrategy,
-  judgeSummary,
-  benchmarkTemplate,
-];
-
-const SCENARIOS = {
-  balanced: [
-    "Demo review,5,30",
-    "Write slides,3,45",
-    "Inbox cleanup,1,20",
-  ],
-  high_priority_burst: [
-    "Production patch,5,25",
-    "Incident postmortem,5,35",
-    "Customer callback,4,20",
-    "Backlog grooming,2,30",
-  ],
-  long_tail: [
-    "Architecture RFC,4,90",
-    "Tech debt cleanup,2,60",
-    "Docs update,1,20",
-    "QA rerun,3,45",
-    "Sprint planning,2,50",
-  ],
-};
-
-function loadScenario(name) {
-  const rows = SCENARIOS[name] || SCENARIOS.balanced;
-  input.value = rows.join("\n");
-}
-
-function clearResults() {
-  resultBox.textContent = "";
-  resultTableBody.innerHTML = "";
-  metricsSection.hidden = true;
-}
-
-function parseTasks(rawText) {
-  const parsedTasks = [];
-  const displayTasks = [];
-  const errors = [];
-  const lines = rawText
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean);
-
-  lines.forEach((line, index) => {
-    const [titleRaw = "", priorityRaw = "1", durationRaw = "30"] = line.split(",");
-    const title = titleRaw.trim();
-    const priority = Number(priorityRaw.trim());
-    const duration = Number(durationRaw.trim());
-
-    if (!title) {
-      errors.push(`Line ${index + 1}: title is required.`);
-      return;
-    }
-    if (!Number.isFinite(priority) || priority < 1 || priority > 5) {
-      errors.push(`Line ${index + 1}: priority must be between 1 and 5.`);
-      return;
-    }
-    if (!Number.isFinite(duration) || duration < 1) {
-      errors.push(`Line ${index + 1}: duration must be at least 1 minute.`);
-      return;
-    }
-
-    parsedTasks.push({
-      id: index + 1,
-      duration,
-      priority,
+  // Focus Mode
+  const inputPanel = document.querySelector(".input-panel");
+  if(inputPanel) {
+    inputPanel.addEventListener("focusin", () => document.body.classList.add("focus-mode"));
+    inputPanel.addEventListener("focusout", (e) => {
+      if (!inputPanel.contains(e.relatedTarget)) document.body.classList.remove("focus-mode");
     });
-    displayTasks.push({
-      id: index + 1,
-      title,
-      priority,
-      duration_minutes: duration,
-    });
+  }
+
+  // Setup Event Listeners
+  priorityBtns.forEach(btn => btn.addEventListener("click", (e) => {
+    priorityBtns.forEach(b => b.classList.remove("active"));
+    e.target.classList.add("active");
+    currentPriority = parseInt(e.target.dataset.val, 10);
+    customPriority.value = ""; 
+    priGroup.className = "hybrid-input-group active-btn";
+  }));
+
+  customPriority.addEventListener("blur", (e) => {
+    let val = parseInt(e.target.value, 10);
+    if (!isNaN(val)) {
+      if (val < 1) val = 1;
+      if (val > 5) val = 5;
+      e.target.value = val;
+      currentPriority = val;
+    }
   });
 
-  return { parsedTasks, displayTasks, errors };
-}
-
-function renderValidationErrors(errors) {
-  if (errors.length === 0) {
-    validationErrorsBox.textContent = "";
-    return;
-  }
-  validationErrorsBox.innerHTML = errors.map((error) => `<p>${error}</p>`).join("");
-}
-
-function renderMetrics(orderedTasks) {
-  const totalTasks = orderedTasks.length;
-  const totalDuration = orderedTasks.reduce((sum, task) => sum + task.duration_minutes, 0);
-  const avgPriority =
-    totalTasks === 0
-      ? 0
-      : orderedTasks.reduce((sum, task) => sum + task.priority, 0) / totalTasks;
-
-  metricTotal.textContent = String(totalTasks);
-  metricPriority.textContent = avgPriority.toFixed(2);
-  metricDuration.textContent = `${totalDuration} min`;
-  metricsSection.hidden = false;
-}
-
-function renderOrderedTasks(orderedTasks) {
-  resultTableBody.innerHTML = orderedTasks
-    .map(
-      (task, index) => `
-      <tr>
-        <td>${index + 1}</td>
-        <td>${task.title}</td>
-        <td>${task.priority}</td>
-        <td>${task.duration_minutes}</td>
-      </tr>
-    `
-    )
-    .join("");
-}
-
-function detectStage(tasks) {
-  const avgDuration =
-    tasks.length === 0
-      ? 0
-      : tasks.reduce((sum, task) => sum + task.duration_minutes, 0) / tasks.length;
-  const avgPriority =
-    tasks.length === 0 ? 0 : tasks.reduce((sum, task) => sum + task.priority, 0) / tasks.length;
-
-  if (tasks.length >= 5 || avgDuration > 55) return "Stage 3";
-  if (tasks.length >= 4 || avgPriority >= 3.5) return "Stage 2";
-  return "Stage 1";
-}
-
-function bindUiEvents() {
-  if (requiredElements.some((element) => !element)) {
-    console.error("TaskMesh UI init failed: one or more required elements were not found.");
-    return;
-  }
-
-  loadScenario("balanced");
-  statusBox.textContent = "UI loaded. Select a scenario and click Generate Schedule.";
-
-  loadScenarioButton.addEventListener("click", () => {
-    loadScenario(scenarioSelect.value);
-    statusBox.textContent = "Scenario loaded. You can edit tasks before sending.";
-    renderValidationErrors([]);
-    clearResults();
+  customPriority.addEventListener("input", (e) => {
+    priorityBtns.forEach(b => b.classList.remove("active"));
+    priGroup.className = "hybrid-input-group active-custom";
+    const val = parseInt(e.target.value, 10);
+    if (!isNaN(val)) currentPriority = Math.min(Math.max(val, 1), 5);
   });
 
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const apiBase = apiUrlInput.value.trim().replace(/\/+$/, "");
-    const { parsedTasks, displayTasks, errors } = parseTasks(input.value);
+  durationBtns.forEach(btn => btn.addEventListener("click", (e) => {
+    durationBtns.forEach(b => b.classList.remove("active"));
+    e.target.classList.add("active");
+    currentDuration = parseInt(e.target.dataset.val, 10);
+    customDuration.value = ""; 
+    durGroup.className = "hybrid-input-group active-btn";
+  }));
 
-    renderValidationErrors(errors);
-    clearResults();
-    if (!apiBase) {
-      statusBox.textContent = "Provide a valid API URL first.";
-      return;
+  customDuration.addEventListener("blur", (e) => {
+    let val = parseInt(e.target.value, 10);
+    if (!isNaN(val)) {
+      if (val < 1) val = 1;
+      e.target.value = val;
+      currentDuration = val;
     }
-    if (parsedTasks.length === 0) {
-      statusBox.textContent = "Add at least one valid task line.";
-      return;
-    }
-    if (errors.length > 0) {
-      statusBox.textContent = "Fix validation errors before scheduling.";
-      return;
-    }
+  });
 
-    statusBox.textContent = "Scheduling tasks...";
+  customDuration.addEventListener("input", (e) => {
+    durationBtns.forEach(b => b.classList.remove("active"));
+    durGroup.className = "hybrid-input-group active-custom";
+    const val = parseInt(e.target.value, 10);
+    if (!isNaN(val)) currentDuration = Math.max(val, 1);
+  });
+
+  // Step Controls logic
+  document.querySelector('.minus-pri').addEventListener('click', () => {
+    let v = parseInt(customPriority.value) || currentPriority;
+    customPriority.value = Math.max(v - 1, 1);
+    customPriority.dispatchEvent(new Event('input'));
+  });
+  document.querySelector('.plus-pri').addEventListener('click', () => {
+    let v = parseInt(customPriority.value) || currentPriority;
+    customPriority.value = Math.min(v + 1, 5);
+    customPriority.dispatchEvent(new Event('input'));
+  });
+  document.querySelector('.minus-dur').addEventListener('click', () => {
+    let v = parseInt(customDuration.value) || currentDuration;
+    customDuration.value = Math.max(v - 5, 1);
+    customDuration.dispatchEvent(new Event('input'));
+  });
+  document.querySelector('.plus-dur').addEventListener('click', () => {
+    let v = parseInt(customDuration.value) || currentDuration;
+    customDuration.value = v + 5;
+    customDuration.dispatchEvent(new Event('input'));
+  });
+
+  scenarioBtns.forEach(btn => btn.addEventListener("click", (e) => {
+    scenarioBtns.forEach(b => b.classList.remove("active"));
+    e.target.classList.add("active");
+    loadScenario(e.target.dataset.val);
+  }));
+
+  addTaskBtn.addEventListener("click", () => {
+    const title = uiTaskName.value.trim() || `Task ${taskIdCounter}`;
+    
+    let p = customPriority.value !== "" ? parseInt(customPriority.value, 10) : currentPriority;
+    if (isNaN(p) || p < 1 || p > 5) return showError("Priority must be between 1 and 5.");
+    
+    let d = customDuration.value !== "" ? parseInt(customDuration.value, 10) : currentDuration;
+    if (isNaN(d) || d < 1) return showError("Duration must be a positive number.");
+
+    taskQueue.push({ id: taskIdCounter++, title, priority: p, duration: d });
+    uiTaskName.value = "";
+    updateUI();
+    showSuccess("Task added successfully");
+  });
+
+  runBtnTop.addEventListener("click", async () => {
+    if (taskQueue.length === 0) return showError("Queue is empty.");
+    await runDualScheduler();
+  });
+
+  function loadScenario(key) {
+    taskQueue = [];
+    taskIdCounter = 1;
+    (SCENARIOS[key] || SCENARIOS.balanced).forEach(p => {
+      taskQueue.push({ id: taskIdCounter++, title: p.title, priority: p.priority, duration: p.duration });
+    });
+    updateUI();
+  }
+
+  function updateUI() {
+    runBtnTop.disabled = taskQueue.length === 0;
+    if (taskQueue.length === 0) {
+      uiQueue.innerHTML = `<div style="text-align:center; padding: 20px; font-style:italic; color: var(--text-muted); font-size:12px;">Queue is empty. Select a preset or add a task.</div>`;
+      return;
+    }
+    uiQueue.innerHTML = taskQueue.map(t => `
+      <div class="queue-card">
+        <div class="q-title">${t.title}</div>
+        <div class="q-badges">
+          <span class="badge pri-badge">Imp: ${t.priority}</span>
+          <span class="badge dur-badge">${t.duration}m</span>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    errorMsg.style.color = "var(--danger)";
+    setTimeout(() => errorMsg.textContent = "", 3000);
+  }
+
+  function showSuccess(msg) {
+    errorMsg.textContent = msg;
+    errorMsg.style.color = "var(--emerald)";
+    setTimeout(() => errorMsg.textContent = "", 2000);
+  }
+
+  // Dual API Execution
+  async function runDualScheduler() {
+    console.log("TASK QUEUE LENGTH:", taskQueue.length);
+    console.log("TASK QUEUE DATA:", JSON.stringify(taskQueue, null, 2));
+
+    runBtnTop.disabled = true;
+    btnText.textContent = "Processing...";
+    btnSpinner.hidden = false;
+    globalStatus.textContent = "Optimizing via RL & Baseline...";
+    globalStatus.style.color = "#00e5ff";
+    resultsWrapper.hidden = true; 
+    emptyResultsState.hidden = true;
+
+    const payloadTemplate = { tasks: taskQueue.map(t => ({ id: t.id, priority: t.priority, duration: t.duration })) };
+    const sentPayload = { ...payloadTemplate, algorithm: "rl" };
+    console.log("PAYLOAD SENT:", JSON.stringify(sentPayload, null, 2));
 
     try {
-      const strategySelect = document.getElementById("strategy-select");
-      const algorithm = strategySelect ? strategySelect.value : "rl";
-      const response = await fetch(`${apiBase}/schedule`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ algorithm, tasks: parsedTasks }),
-      });
+      const [baselineRes, rlRes] = await Promise.all([
+        fetch("http://127.0.0.1:8000/schedule", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...payloadTemplate, algorithm: "baseline" })
+        }),
+        fetch("http://127.0.0.1:8000/schedule", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...payloadTemplate, algorithm: "rl" })
+        })
+      ]);
 
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
+      if (!baselineRes.ok || !rlRes.ok) throw new Error("API call failed");
+
+      const baselineData = await baselineRes.json();
+      const rlData = await rlRes.json();
+
+      console.log("FULL API RESPONSE:", JSON.stringify(rlData, null, 2));
+      console.log("SCHEDULE LENGTH:", rlData.schedule?.length);
+
+      if (rlData.schedule && rlData.schedule.length === 1) {
+        console.error("❌ BACKEND RETURNING ONLY ONE TASK");
       }
 
-      const data = await response.json();
-      const orderedTasks = (data.ordered_tasks || [])
-        .map((taskId) => displayTasks.find((task) => task.id === Number(taskId)))
-        .filter(Boolean);
-      const stageLabel = detectStage(orderedTasks);
+      renderDataStory(baselineData, rlData);
 
-      statusBox.textContent = `Schedule ready. Score: ${data.score} (${data.strategy})`;
-      proofStage.textContent = stageLabel;
-      proofScore.textContent = String(data.score ?? "--");
-      proofStrategy.textContent = data.strategy || "unknown";
-
-      judgeSummary.textContent = `Completed ${stageLabel} with ${orderedTasks.length} tasks and scheduler score ${data.score}.`;
-      benchmarkTemplate.textContent = "No benchmark loaded yet. Run benchmark.py and paste real results.";
-
-      renderMetrics(orderedTasks);
-      renderOrderedTasks(orderedTasks);
-      resultBox.textContent = JSON.stringify(data, null, 2);
-    } catch (error) {
-      statusBox.textContent = "Could not reach the API. Check backend URL and make sure FastAPI is running.";
-      resultBox.textContent = error instanceof Error ? error.message : String(error);
+    } catch (err) {
+      console.error(err);
+      globalStatus.textContent = "Execution Failed";
+      globalStatus.style.color = "#ef4444";
+      showError("Scheduler failed to respond.");
+      emptyResultsState.hidden = false;
+    } finally {
+      runBtnTop.disabled = false;
+      btnText.textContent = "Run Scheduler";
+      btnSpinner.hidden = true;
     }
-  });
-}
-
-function showDashboard() {
-  if (dashboardRoot) {
-    dashboardRoot.hidden = false;
-    dashboardRoot.style.display = 'block';
-  }
-}
-
-function initDashboard() {
-  showDashboard();
-  if (!uiBound) {
-    if (apiUrlInput) {
-      apiUrlInput.value = window.location.origin;
-    }
-    bindUiEvents();
-    uiBound = true;
-  }
-}
-
-
-function bindCursorSpotlight() {
-  const canvas = document.createElement("canvas");
-  canvas.className = "fx-canvas";
-  document.body.appendChild(canvas);
-
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
-
-  const particles = [];
-  const particleCount = 120;
-  let mouseX = window.innerWidth / 2;
-  let mouseY = window.innerHeight / 2;
-
-  function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
   }
 
-  function makeParticle() {
-    return {
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 0.7,
-      vy: (Math.random() - 0.5) * 0.7,
-      r: Math.random() * 1.8 + 0.6,
-    };
-  }
+  function renderDataStory(baseline, rl) {
+    resultsWrapper.hidden = false;
+    globalStatus.textContent = "Schedule Optimized";
+    globalStatus.style.color = "#10b981";
 
-  for (let i = 0; i < particleCount; i += 1) {
-    particles.push(makeParticle());
-  }
-
-  window.addEventListener("resize", resize);
-  window.addEventListener("mousemove", (event) => {
-    mouseX = event.clientX;
-    mouseY = event.clientY;
-  });
-
-  function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    for (let i = 0; i < particles.length; i += 1) {
-      const p = particles[i];
-      const dx = mouseX - p.x;
-      const dy = mouseY - p.y;
-      const d2 = dx * dx + dy * dy;
-      const influence = Math.min(0.00008 * d2, 0.22);
-      p.vx += (Math.random() - 0.5) * 0.02 + (dx > 0 ? 0.001 : -0.001) * influence;
-      p.vy += (Math.random() - 0.5) * 0.02 + (dy > 0 ? 0.001 : -0.001) * influence;
-      p.vx *= 0.985;
-      p.vy *= 0.985;
-      p.x += p.vx;
-      p.y += p.vy;
-
-      if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-      if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
-      ctx.fill();
+    const schedule = rl.schedule || [];
+    if (!schedule.length) {
+      showError("No tasks scheduled");
+      emptyResultsState.hidden = false;
+      resultsWrapper.hidden = true;
+      return;
     }
 
-    requestAnimationFrame(draw);
+    console.log("RENDERING TASK COUNT:", schedule.length);
+
+    // Clear the table first
+    resultTableBody.innerHTML = "";
+
+    // Append rows individually to avoid overwriting or slicing
+    schedule.forEach((item, index) => {
+      const orig = taskQueue.find(t => t.id == item.task_id || t.id == item.id) || {};
+      const t = {
+        title: orig.title || `Task ${item.task_id || item.id}`,
+        priority: orig.priority || item.priority || 1,
+        duration: orig.duration || (item.end - item.start),
+        start: item.start,
+        end: item.end,
+        wait: item.wait_time || item.start
+      };
+
+      const row = document.createElement("tr");
+      if (t.priority === 5) row.classList.add("high-priority-row");
+      row.style.animationDelay = `${index * 0.04}s`;
+
+      row.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${t.title}</td>
+        <td>${t.priority}</td>
+        <td>${t.duration}m</td>
+        <td>${t.start}m</td>
+        <td>${t.wait}m</td>
+        <td>${t.end}m</td>
+      `;
+      resultTableBody.appendChild(row);
+    });
+
+    console.log("FINAL ROW COUNT IN DOM:", resultTableBody.children.length);
+
+    const orderedTasks = Array.from(resultTableBody.children).map(row => {
+      // Reconstruct for charts if needed
+      return {
+        title: row.cells[1].innerText,
+        start: parseInt(row.cells[4].innerText),
+        duration: parseInt(row.cells[3].innerText),
+        priority: parseInt(row.cells[2].innerText),
+        end: parseInt(row.cells[6].innerText)
+      };
+    });
+
+    const blMetrics = baseline.metrics || {};
+    const rlMetrics = rl.metrics || {};
+
+    const waitDiff = blMetrics.avg_wait_time - rlMetrics.avg_wait_time;
+    const waitPct = blMetrics.avg_wait_time > 0 ? (waitDiff / blMetrics.avg_wait_time * 100).toFixed(0) : 0;
+    
+    const tpDiff = rlMetrics.throughput - blMetrics.throughput;
+    const tpPct = blMetrics.throughput > 0 ? (tpDiff / blMetrics.throughput * 100).toFixed(0) : 0;
+
+    const latDiff = blMetrics.tail_latency - rlMetrics.tail_latency;
+    const latPct = blMetrics.tail_latency > 0 ? (latDiff / blMetrics.tail_latency * 100).toFixed(0) : 0;
+
+    function renderImpact(el, diff, pct, isLowerBetter) {
+      if (diff === 0) {
+        el.textContent = "Same as Baseline";
+        el.className = "m-impact impact-neutral";
+      } else {
+        const improved = diff > 0;
+        const arrow = improved ? (isLowerBetter ? '⬇' : '⬆') : (isLowerBetter ? '⬆' : '⬇');
+        el.textContent = `${arrow} ${Math.abs(pct)}% vs Baseline`;
+        el.className = `m-impact ${improved ? 'impact-positive' : 'impact-negative'}`;
+      }
+    }
+
+    metricWait.textContent = `${rlMetrics.avg_wait_time}m`;
+    renderImpact(impactWait, waitDiff, waitPct, true);
+
+    metricThroughput.textContent = rlMetrics.throughput;
+    renderImpact(impactThroughput, tpDiff, tpPct, false);
+
+    metricLatency.textContent = `${rlMetrics.tail_latency}m`;
+    renderImpact(impactLatency, latDiff, latPct, true);
+
+    // Generate Insight String & Headline (Simplified)
+    if (waitDiff > 0) {
+      headlineText.innerHTML = `AI reduced average delay by <span class="neon">${waitPct}%</span>`;
+      dynamicInsight.innerHTML = `The system prioritizes urgent tasks first while avoiding long delays.`;
+    } else if (tpDiff > 0) {
+      headlineText.innerHTML = `AI increased tasks completed by <span class="neon">${tpPct}%</span>`;
+      dynamicInsight.innerHTML = `The system tightly packed tasks to maximize throughput in the given time window.`;
+    } else {
+      headlineText.innerHTML = `Baseline flow is optimal for this load`;
+      dynamicInsight.innerHTML = `The default ordering was already optimal for this specific combination of tasks.`;
+    }
+
+    const grid = document.querySelector('.graphs-grid');
+    if(grid) grid.style.opacity = '0';
+    
+    setTimeout(() => {
+      drawGraphs(orderedTasks, blMetrics, rlMetrics);
+      if(grid) grid.style.opacity = '1';
+    }, 150);
   }
 
-  resize();
-  draw();
-}
+  function drawGraphs(tasks, bl, rl) {
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.font.family = "'Inter', sans-serif";
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => {
-    bindCursorSpotlight();
-    initDashboard();
-  });
-} else {
-  bindCursorSpotlight();
-  initDashboard();
-}
+    if (timelineChart) timelineChart.destroy();
+    timelineChart = new Chart(document.getElementById('timeline-chart').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: tasks.map(t => t.title),
+        datasets: [
+          { label: 'Start Offset', data: tasks.map(t => t.start), backgroundColor: 'rgba(0,0,0,0)' },
+          { 
+            label: 'Duration', 
+            data: tasks.map(t => t.duration), 
+            backgroundColor: tasks.map(t => PRIORITY_COLORS[t.priority] || PRIORITY_COLORS[1]),
+            borderRadius: 4 
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.datasetIndex === 0 ? '' : `Runs: ${tasks[c.dataIndex].start}m - ${tasks[c.dataIndex].end}m` }}},
+        scales: { x: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' } }, y: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 } } } }
+      }
+    });
+
+    if (comparisonChart) comparisonChart.destroy();
+    comparisonChart = new Chart(document.getElementById('comparison-chart').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: ['Avg Delay', 'Worst Delay'],
+        datasets: [
+          { label: 'Baseline', data: [bl.avg_wait_time, bl.tail_latency], backgroundColor: 'rgba(148, 163, 184, 0.4)' },
+          { label: 'AI Optimized', data: [rl.avg_wait_time, rl.tail_latency], backgroundColor: 'rgba(0, 229, 255, 0.8)' }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', labels: { boxWidth: 10, font: {size: 11} } } },
+        scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { font: {size: 11} } }, x: { grid: { display: false }, ticks: { font: {size: 11} } } }
+      }
+    });
+  }
+
+  // Init
+  loadScenario('high_priority_burst');
+});

@@ -1,178 +1,38 @@
----
-title: TaskMesh
-emoji: 💻
-colorFrom: green
-colorTo: gray
-sdk: docker
-pinned: false
----
+# TaskMesh
+### OpenEnv Hackathon India 2026 Submission
 
-# 🚀 TaskMesh
+![TaskMesh Architecture](benchmark.png)
 
-> A reinforcement learning-based task scheduling system that reduces average wait time by **18%** by dynamically adapting scheduling decisions using a language-model policy.
+## 📖 The Problem
+Task scheduling in distributed systems is traditionally handled by static heuristics (FIFO, Shortest-Job-First, or weighted Priority Queues). However, as systems become dynamic, these heuristics fail to adapt to bursting workloads, leading to catastrophic tail latencies for critical tasks. 
 
-## Live Demo
+**TaskMesh** replaces these rigid formulas with a dynamically trained Reinforcement Learning agent.
 
-🔗 **Live API & Dashboard:** https://akj123-taskmesh.hf.space/docs
+## 🌍 The Environment (OpenEnv)
+We built a custom environment wrapping the `OpenEnv` framework.
+- **State Space**: A flattened 41-dimensional array representing the current global time, and the `(priority, duration)` of up to 20 queued tasks.
+- **Action Space**: Discrete (Select the index of the next task to run).
+- **Reward Function**: The agent is heavily penalized by `-wait_time` while receiving massive bonuses for scheduling high-priority tasks early. It mathematically forces the agent to balance throughput vs. critical latency.
 
----
+## 🧠 Training & RL Setup
+Instead of training a massive, slow LLM, we implemented a highly efficient **Policy Gradient / DQN Agent** using PyTorch. The agent processes the environment state and learns the optimal sorting policy via episodic trial-and-error.
 
-## Problem Statement
+**Training Results:**
+The reward curve below demonstrates the agent rapidly minimizing wait times and converging on an optimal policy within a few hundred episodes:
 
-Task scheduling in operating systems, cloud clusters, and complex systems is inherently challenging due to dynamic workloads.
+![Reward Curve](assets/reward_curve.png)
 
-Traditional schedulers rely on static heuristics such as FIFO or fixed priority queues. These approaches fail to adapt to changing queue conditions. For example, executing a high-priority but long-running task too early can create severe bottlenecks, significantly increasing wait times for all subsequent tasks.
+## 🚀 Live Demo & Code
+- **Hugging Face Space (Gradio API)**: [TaskMesh HF Space (Pending Link)](#)
+- **Training Colab Notebook**: [Colab Link (Pending Link)](#)
+- **YouTube Pitch Video**: [Watch Demo (< 2 Mins)](#)
 
----
+## ⚙️ Local Development
+If you want to run the highly-visual storytelling UI locally:
+```bash
+# Start Backend
+uvicorn backend.app:app --reload
 
-## Solution Overview
-
-TaskMesh models scheduling as a Reinforcement Learning problem.
-
-It uses a causal language model (**distilgpt2**) trained with Proximal Policy Optimization (PPO) via Hugging Face TRL.
-
-- Environment state → converted into a text prompt  
-- Model → generates an action (task index)  
-- Action → selects the next task to schedule  
-
-This allows the system to dynamically choose actions that optimize overall system efficiency instead of relying on fixed rules.
-
----
-
-## Environment Design
-
-TaskMesh implements a custom step-based RL environment (`TaskMeshEnv`) aligned with OpenEnv principles.
-
-- **Task Generation:** Randomized tasks with varying durations (1–10) and priorities (1–10)  
-- **State Representation:**  
-  - Remaining tasks  
-  - Current system time  
-  - Schedule history  
-  - Accumulated wait time  
-- **Action Space:** Dynamic discrete indices mapping to tasks in the queue  
-
-### Key Complexities
-
-- **Dynamic Action Space:** Shrinks as tasks are completed  
-- **Cascading Effects:** Early decisions significantly impact future latency  
-- **Multi-Objective Trade-offs:** Balance priority, duration, and system-wide wait time  
-
----
-
-## Why Reinforcement Learning
-
-The scheduling problem is **state-dependent**, not rule-based.
-
-Optimal decisions vary depending on queue composition:
-- A long task should be delayed in a congested queue  
-- The same task may be optimal when the queue is nearly empty  
-
-Static heuristics assume fixed relationships and cannot adapt to such context.
-
-Reinforcement Learning enables:
-- Adaptive decision-making  
-- Learning from environment feedback  
-- Balancing short-term and long-term trade-offs  
-
----
-
-## Reward Design
-
-The reward function aligns local scheduling decisions with global system efficiency.
-
-### Positive Signals
-- Rewards selection of high-priority tasks (`+2.0 * priority`)
-
-### Penalties
-- Wait time penalty (`-1.0 * wait_time`)
-- Duration penalty (`-0.5 * duration`)
-- Repetitive scheduling penalty (`-1`)
-- Episode-level penalties:
-  - Total wait time  
-  - Total completion time  
-
-### Structure
-- **Dense:** Immediate feedback at each step  
-- **Sparse:** Final evaluation of full schedule  
-
----
-
-## Results
-
-Empirical benchmarking shows that the RL policy improves scheduling efficiency without degrading system stability.
-
-| Metric | Baseline | TaskMesh (RL) | Improvement |
-|--------|---------|--------------|-------------|
-| **Average Wait Time** | 9.856 | 8.076 | ↓ **18.06%** |
-| **Throughput** | 5.0 | 5.0 | Unchanged |
-| **Tail Latency** | 28.38 | 28.38 | Unchanged |
-
----
-
-## Training Insights
-
-- **Episodes:** 200  
-- **Training Signal:** Noisy and fluctuating  
-
-### Why Noise Exists
-- Stochastic task generation (different queues each episode)  
-- Exploration during training  
-
-Despite this, the final trained policy consistently achieves **~18% improvement in average wait time**, demonstrating effective learning.
-
-![Reward Curve](scripts/reward_curve.png)
-
----
-
-## Baseline Comparison
-
-TaskMesh is evaluated against a static heuristic scheduler.
-
-- **Strategy:** Priority-based greedy scheduling  
-- **Logic:**  
-  - Sort by priority  
-  - Or use fixed scoring: `priority - 0.5 * duration`  
-
-### Limitations
-- Non-adaptive  
-- Ignores deadlines  
-- Greedy (no long-term optimization)  
-
-RL overcomes these by learning context-aware scheduling strategies.
-
----
-
-## Real-World Relevance
-
-This environment reflects real-world scheduling scenarios such as:
-- CPU task scheduling  
-- Cloud job scheduling  
-- Distributed system workloads  
-
-The system models realistic trade-offs between latency, priority, and resource utilization.
-
----
-
-## Architecture
-
-- **Environment:** Custom `OpenEnvTaskMesh` simulator  
-- **Policy Training:** PPO via `trl.PPOTrainer`  
-- **Model:** distilgpt2 (text-based decision policy)  
-- **Backend:** FastAPI  
-- **Deployment:** Docker + Hugging Face Spaces  
-
----
-
-## Training Setup
-
-- **Model:** distilgpt2  
-- **Framework:** Hugging Face TRL  
-- **Episodes:** 200  
-
----
-
-## Links
-
-- **Live Demo:** https://akj123-taskmesh.hf.space/docs  
-- **Blog / Explanation:** (coming soon)  
-- **Video Walkthrough:** (coming soon)
+# Start Frontend (in a new terminal)
+cd frontend && uvicorn backend.app:app --reload --port 8001
+```

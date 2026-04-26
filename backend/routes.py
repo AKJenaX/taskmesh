@@ -7,8 +7,11 @@ logger = logging.getLogger(__name__)
 
 try:
     from backend.scheduler.adaptive_scheduler import run_rl
-except Exception:
+    RL_AVAILABLE = True
+except Exception as e:
+    print("RL IMPORT FAILED:", e)
     run_rl = None
+    RL_AVAILABLE = False
 
 try:
     from backend.scheduler.baseline import run_baseline
@@ -30,20 +33,31 @@ def run_baseline_stub(tasks):
             },
         }
 
-    first_task = tasks[0]
-    return {
-        "schedule": [
+    print("TASKS RECEIVED:", len(tasks))
+    schedule = []
+    current_time = 0
+
+    for task in tasks:
+        start = current_time
+        end = current_time + task.duration
+        schedule.append(
             {
-                "task_id": first_task.id,
-                "start": 0,
-                "end": first_task.duration,
+                "task_id": task.id,
+                "start": start,
+                "end": end,
                 "score": 0.0,
             }
-        ],
+        )
+        current_time = end
+
+    print("SCHEDULE GENERATED:", len(schedule))
+
+    return {
+        "schedule": schedule,
         "metrics": {
             "avg_wait_time": 0,
-            "throughput": 1,
-            "tail_latency": 0,
+            "throughput": len(schedule),
+            "tail_latency": current_time,
         },
     }
 
@@ -124,9 +138,14 @@ def validate_and_normalize(result):
 
 def get_scheduler_func(algo):
     if algo == "baseline":
+        print("USING BASELINE/STUB")
         return run_baseline if run_baseline else run_baseline_stub
+    if algo == "rl" and RL_AVAILABLE:
+        print("USING RL SCHEDULER")
+        return run_rl
     if algo == "rl":
-        return run_rl if run_rl else run_rl_stub
+        print("USING BASELINE/STUB")
+        return run_rl_stub
     return None
 
 
@@ -146,10 +165,16 @@ def simulate(payload: RequestModel) -> ResponseModel:
         tasks = payload.tasks or []
 
         if algo == "baseline":
+            print("USING BASELINE/STUB")
             func = run_baseline if run_baseline else run_baseline_stub
 
+        elif algo == "rl" and RL_AVAILABLE:
+            print("USING RL SCHEDULER")
+            func = run_rl
+
         elif algo == "rl":
-            func = run_rl if run_rl else run_rl_stub
+            print("USING BASELINE/STUB")
+            func = run_rl_stub
 
         else:
             return fallback

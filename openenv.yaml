@@ -1,0 +1,20 @@
+name: "TaskMesh"
+version: "1.0.0"
+description: "A dynamic task scheduling environment where an agent learns to optimize a queue of tasks by priority and duration to minimize overall latency and wait times."
+environment_type: "custom"
+author: "TaskMesh Team"
+
+observation_space:
+  type: "Box"
+  shape: [41]
+  dtype: "float32"
+  description: "A flat array containing the current global wait time, followed by 20 pairs of (priority, duration) for the tasks remaining in the queue. Padded with zeros if fewer than 20 tasks exist."
+
+action_space:
+  type: "Discrete"
+  size: 20
+  description: "Select the index of the next task to process from the queue. Maximum 20 tasks."
+
+reward:
+  description: "Negative wait time + massive bonus for scheduling high-priority tasks early. Illegal actions yield heavy penalties (-100)."
+  range: [-100.0, 50.0]

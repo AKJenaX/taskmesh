@@ -1,6 +1,11 @@
+import numpy as np
+
+MAX_TASKS = 20
+
 class TaskEnv:
     def __init__(self, tasks):
         self.original_tasks = [dict(t) for t in tasks]
+        self.max_tasks = MAX_TASKS
         self.reset()
 
     def reset(self):
@@ -8,45 +13,51 @@ class TaskEnv:
         self.time = 0
         self.done = False
         self.scheduled = []
-        self.steps = 0
-        self.last_priority = None
         return self._get_state()
 
     def _get_state(self):
-        return [dict(t) for t in self.tasks]
+        # State: [current_time] + [task1_prio, task1_dur, ...] + [0, 0] padding
+        state = [float(self.time)]
+        
+        for i in range(self.max_tasks):
+            if i < len(self.tasks):
+                state.append(float(self.tasks[i].get("priority", 0)))
+                state.append(float(self.tasks[i].get("duration", 0)))
+            else:
+                state.append(0.0)
+                state.append(0.0)
+                
+        return np.array(state, dtype=np.float32)
+
+    def get_valid_actions(self):
+        return list(range(len(self.tasks)))
 
     def step(self, action):
         if self.done:
             return self._get_state(), 0.0, True
 
-        self.steps += 1
-        reward = 0.0
-
-        if not (0 <= action < len(self.tasks)):
-            reward = -5.0
-            done = self.steps >= 500
-            return self._get_state(), reward, done
+        valid_actions = self.get_valid_actions()
+        if action not in valid_actions:
+            return self._get_state(), -100.0, self.done
 
         task = self.tasks.pop(action)
-        wait_time = max(0, self.time)
-        reward += task["priority"]
-        reward -= wait_time * 0.1
-
-        if self.last_priority is not None and task["priority"] >= self.last_priority:
-            reward += 2.0
-        self.last_priority = task["priority"]
-
+        
+        wait_time = self.time
+        
+        # Simple stable reward: negative wait_time + bonus for scheduling high priority early
+        reward = (task.get("priority", 1) * 10.0) - wait_time
+        
         start = self.time
-        end = start + task["duration"]
+        end = start + task.get("duration", 1)
+        
         self.scheduled.append({
-            "task_id": task["id"],
-            "start": start,
-            "end": end,
-            "core": 0
+            "task_id": task.get("id", 0),
+            "start": int(start),
+            "end": int(end),
+            "score": 0.0
         })
+        
         self.time = end
-
-        done = len(self.tasks) == 0 or self.steps >= 500
-        self.done = done
-        return self._get_state(), reward, done
-
+        self.done = len(self.tasks) == 0
+        
+        return self._get_state(), float(reward), self.done

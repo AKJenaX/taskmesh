@@ -1,124 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TaskMesh</title>
-    <link rel="stylesheet" href="/static/style.css" />
-  </head>
-  <body>
-    <div class="grid-overlay"></div>
-    <div class="cursor-glow"></div>
-    <div class="cursor-trail"></div>
-    <div class="cursor-light-ring"></div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskMesh</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css?v=9" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <!-- Atmospheric Backgrounds -->
+  <div class="bg-gradient"></div>
+  <div class="bg-glow bg-glow-cyan"></div>
+  <div class="bg-glow bg-glow-purple"></div>
+
+  <!-- Main Area -->
+  <div class="main-wrapper">
     
-    <main id="dashboard-root" class="dashboard-shell">
-      <section class="main-panel">
-        <header class="hero">
-          <div class="header-content">
-            <h2>TaskMesh</h2>
-          </div>
-        </header>
+    <!-- 1. TOP SECTION — "WHAT IS THIS" -->
+    <header class="intro-banner glass-panel">
+      <div class="intro-left">
+        <h1>TaskMesh</h1>
+        <p class="subtitle">This system automatically arranges tasks to reduce delays and improve efficiency.</p>
+        <p class="helper-text"><span class="cyan">Add tasks</span> &rarr; <span class="cyan">Run scheduler</span> &rarr; <span class="cyan">See improvement</span></p>
+      </div>
+      <div class="intro-right">
+        <div class="status-indicator">
+          <div class="pulse-dot"></div>
+          <span id="global-status">System Ready</span>
+        </div>
+        <button id="run-scheduler-btn" class="btn-primary glow-btn" disabled>
+          <span class="btn-text">Run Scheduler</span>
+          <span class="spinner" hidden></span>
+        </button>
+      </div>
+    </header>
 
-        <section class="proof-strip">
-          <article>
-            <p class="proof-label">Current Demo Stage</p>
-            <p id="proof-stage" class="proof-value">Stage 1</p>
-          </article>
-          <article>
-            <p class="proof-label">Latest Score</p>
-            <p id="proof-score" class="proof-value">--</p>
-          </article>
-          <article>
-            <p class="proof-label">Strategy</p>
-            <p id="proof-strategy" class="proof-value">baseline_priority</p>
-          </article>
-        </section>
+    <main id="dashboard-root" class="content-scroll">
+      <div class="dashboard-grid">
 
-        <section class="surface">
-          <form id="task-form" class="task-form">
-            <div class="controls-grid">
-              <label for="api-url">API URL</label>
-              <input
-                id="api-url"
-                type="url"
-                placeholder="Auto-detected API URL"
-              />
-
-              <label for="scenario-select">Scenario preset</label>
-              <select id="scenario-select">
-                <option value="balanced">Balanced (default)</option>
-                <option value="high_priority_burst">High-priority burst</option>
-                <option value="long_tail">Long-tail backlog</option>
-              </select>
+        <!-- LEFT COLUMN: INPUT & QUEUE -->
+        <div class="left-col">
+          
+          <!-- 2. INPUT SECTION — "WHAT YOU DO" -->
+          <section class="glass-panel compact-panel input-panel">
+            <div class="section-header">
+              <h2>Task Configuration</h2>
+            </div>
+            
+            <div class="control-group compact-group">
+              <label>Presets <span class="hint">Load example queue</span></label>
+              <div class="pill-group" id="ui-scenarios">
+                <button class="pill active" data-val="balanced">Balanced</button>
+                <button class="pill" data-val="high_priority_burst">Priority Burst</button>
+                <button class="pill" data-val="long_tail">Long Tail</button>
+              </div>
             </div>
 
-            <label for="tasks-input">Tasks (title,priority,duration_minutes)</label>
-            <textarea
-              id="tasks-input"
-              rows="10"
-              placeholder="One task per line: title,priority,duration_minutes&#10;Demo review,5,30&#10;Write slides,3,45&#10;Inbox cleanup,1,20"
-            ></textarea>
-            <div class="actions">
-              <button id="load-scenario" type="button" class="button-secondary">Load Scenario</button>
-              <button type="submit">Generate Schedule</button>
+            <div class="divider compact-divider"></div>
+
+            <div class="control-group compact-group">
+              <label>Task Name</label>
+              <input type="text" id="ui-task-name" class="text-input" placeholder="e.g. Deploy Service" />
             </div>
-          </form>
 
-          <div id="status" class="status"></div>
-          <div id="validation-errors" class="validation-errors"></div>
-        </section>
+            <div class="control-group compact-group">
+              <label>Priority <span class="hint">Higher = more important</span></label>
+              <div class="hybrid-input-group" id="priority-group">
+                <div class="btn-group" id="ui-priority">
+                  <button class="btn-toggle" data-val="1">Low</button>
+                  <button class="btn-toggle active" data-val="3">Med</button>
+                  <button class="btn-toggle" data-val="5">High</button>
+                </div>
+                <div class="stepper">
+                  <button type="button" class="step-btn minus-pri">-</button>
+                  <input type="number" id="custom-priority" class="custom-num-input" min="1" max="5" placeholder="1-5" />
+                  <button type="button" class="step-btn plus-pri">+</button>
+                </div>
+              </div>
+            </div>
 
-        <section id="metrics" class="metrics" hidden>
-          <article class="metric-card">
-            <h3>Total Tasks</h3>
-            <p id="metric-total">0</p>
-          </article>
-          <article class="metric-card">
-            <h3>Avg Priority</h3>
-            <p id="metric-priority">0</p>
-          </article>
-          <article class="metric-card">
-            <h3>Total Duration</h3>
-            <p id="metric-duration">0 min</p>
-          </article>
-        </section>
+            <div class="control-group compact-group">
+              <label>Duration <span class="hint">Time required</span></label>
+              <div class="hybrid-input-group" id="duration-group">
+                <div class="btn-group" id="ui-duration">
+                  <button class="btn-toggle" data-val="15">15m</button>
+                  <button class="btn-toggle active" data-val="30">30m</button>
+                  <button class="btn-toggle" data-val="60">60m</button>
+                </div>
+                <div class="stepper">
+                  <button type="button" class="step-btn minus-dur">-</button>
+                  <input type="number" id="custom-duration" class="custom-num-input" min="1" placeholder="mins" />
+                  <button type="button" class="step-btn plus-dur">+</button>
+                </div>
+              </div>
+            </div>
 
-        <section class="judge-panel">
-          <article class="judge-card">
-            <h3>Judge Snapshot</h3>
-            <p id="judge-summary">Run a schedule to generate measurable results for your README and final demo.</p>
-          </article>
-          <article class="judge-card">
-            <h3>Benchmark Template</h3>
-            <p id="benchmark-template">No benchmark loaded yet. Run benchmark.py and paste real results.</p>
-          </article>
-        </section>
+            <button id="ui-add-task" class="btn-outline glow-outline mt-12">Add Task</button>
+            <div id="validation-errors" class="error-msg mt-8"></div>
+          </section>
 
-        <section class="surface">
-          <h3>Ordered Tasks</h3>
-          <div class="table-wrap">
-            <table id="result-table" class="result-table">
-              <thead>
-                <tr>
-                  <th>Order</th>
-                  <th>Task</th>
-                  <th>Priority</th>
-                  <th>Duration (min)</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
+          <!-- 3. CURRENT QUEUE — "YOUR TASKS" -->
+          <section class="glass-panel compact-panel mt-16 queue-display">
+            <div class="section-header">
+              <h2>Your Tasks</h2>
+            </div>
+            <div class="visual-queue" id="ui-queue"></div>
+          </section>
+
+        </div>
+
+        <!-- RIGHT COLUMN: RESULTS -->
+        <div class="right-col">
+          
+          <!-- Empty State -->
+          <div id="empty-results-state" class="empty-results glass-panel">
+            <div class="icon-wrap cyan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+            <h3>Waiting for tasks...</h3>
+            <p>Add tasks to the queue and run the scheduler to see how AI improves efficiency.</p>
           </div>
-        </section>
 
-        <section class="surface">
-          <h3>Raw Response</h3>
-          <pre id="result" class="result"></pre>
-        </section>
-      </section>
+          <!-- RESULTS WRAPPER -->
+          <div id="results-wrapper" hidden>
+            
+            <!-- 4. RESULT SECTION & 7. EXPLANATION -->
+            <div class="glass-panel compact-panel result-header">
+              <div class="headline-banner">
+                <div class="headline-icon cyan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div>
+                <h2 id="headline-text">AI reduced average delay by 15%</h2>
+              </div>
+              <p class="explanation-line">
+                <strong>Why it works:</strong> <span id="dynamic-insight">The system prioritizes urgent tasks first while avoiding long delays.</span>
+              </p>
+            </div>
+
+            <!-- 6. METRICS -->
+            <div class="metrics-grid compact-grid mt-16">
+              <div class="metric-card glass-panel tooltip" data-tooltip="Total time tasks spent waiting before execution. Lower is better.">
+                <div class="m-label">Average delay</div>
+                <div class="m-val" id="metric-wait">--</div>
+                <div class="m-impact" id="impact-wait">--</div>
+              </div>
+              <div class="metric-card glass-panel highlight-card tooltip" data-tooltip="Overall system efficiency score.">
+                <div class="m-label">Tasks completed</div>
+                <div class="m-val gradient-text" id="metric-throughput">--</div>
+                <div class="m-impact" id="impact-throughput">--</div>
+              </div>
+              <div class="metric-card glass-panel tooltip" data-tooltip="The maximum wait time experienced by the lowest priority task.">
+                <div class="m-label">Worst-case delay</div>
+                <div class="m-val" id="metric-latency">--</div>
+                <div class="m-impact" id="impact-latency">--</div>
+              </div>
+            </div>
+
+            <!-- 5. VISUALS -->
+            <div class="graphs-grid compact-grid mt-16">
+              <div class="glass-panel chart-panel span-2">
+                <h3>Execution Timeline</h3>
+                <div class="chart-container">
+                  <canvas id="timeline-chart"></canvas>
+                </div>
+              </div>
+              <div class="glass-panel chart-panel">
+                <h3>Baseline vs AI (Delay)</h3>
+                <div class="chart-container">
+                  <canvas id="comparison-chart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- EXECUTION TABLE -->
+            <div class="glass-panel compact-panel mt-16">
+              <h3>Execution Order</h3>
+              <div class="table-container mt-8">
+                <table id="result-table" class="advanced-table">
+                  <thead>
+                    <tr>
+                      <th>Seq</th>
+                      <th>Task Name</th>
+                      <th>Importance</th>
+                      <th>Duration</th>
+                      <th>Start</th>
+                      <th>Delay</th>
+                      <th>End</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+
+          </div> <!-- /results-wrapper -->
+        </div> <!-- /right-col -->
+
+      </div> <!-- /dashboard-grid -->
     </main>
-
-    <script src="/static/app.js"></script>
-  </body>
+  </div>
+  
+  <script src="/static/app.js?v=9"></script>
+</body>
 </html>
