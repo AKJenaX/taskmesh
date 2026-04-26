@@ -133,7 +133,7 @@ def train_dqn():
     plt.legend()
     plt.grid(True, alpha=0.3)
     
-    plot_path = os.path.join(os.path.dirname(__file__), '..', 'assets', 'reward_curve.png')
+    plot_path = os.path.join(os.path.dirname(__file__), '..', 'assets', 'reward_curve_final.png')
     plt.savefig(plot_path, bbox_inches='tight', dpi=300)
     print(f"Saved beautiful reward_curve.png to {plot_path}")
 
