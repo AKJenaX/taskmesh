@@ -92,6 +92,16 @@ A minimal **TRL-style training loop** is implemented to align with ML-based opti
 
 ---
 
+## Training Results
+
+The model is trained using a reinforcement learning loop with TRL, where rewards improve over episodes as the policy learns better scheduling decisions.
+
+The learned policy reduces average wait time and tail latency compared to the baseline heuristic.
+
+![Reward Curve](scripts/reward_curve.png)
+
+---
+
 ## 🧪 Training Details
 
 - Episodes: 300  

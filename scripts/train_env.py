@@ -2,6 +2,9 @@ from env.taskmesh_env import TaskMeshEnv
 import json
 import random
 from pathlib import Path
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM
+from trl import PPOTrainer, PPOConfig
 
 
 EPISODES = 200
@@ -53,6 +56,56 @@ def _step_env(env, action):
         next_state, reward, done, _info = step_out
     return next_state, float(reward), bool(done)
 
+def state_to_text(state, current_time):
+    tasks = state if isinstance(state, list) else state.get("remaining_tasks", [])
+    
+    lines = [
+        f"Time: {current_time}",
+        "",
+        "Tasks:"
+    ]
+    
+    for i, task in enumerate(tasks):
+        priority = task.get("priority", 0)
+        duration = task.get("duration", 0)
+        lines.append(f"{i}: priority={priority}, duration={duration}")
+        
+    lines.append("")
+    lines.append("Which task should be executed next? Return only the task index.")
+    
+    return "\n".join(lines)
+def model_predict(state_text, num_tasks):
+    inputs = tokenizer(state_text, return_tensors="pt")
+    input_ids = inputs["input_ids"]
+    
+    with torch.no_grad():
+        outputs = model.generate(input_ids, max_new_tokens=10, pad_token_id=tokenizer.eos_token_id)
+        
+    response_ids = outputs[0][input_ids.shape[-1]:]
+    output_text = tokenizer.decode(response_ids, skip_special_tokens=True).strip()
+    
+    try:
+        import re
+        numbers = re.findall(r'\d+', output_text)
+        action = int(numbers[0]) if numbers else 0
+    except Exception:
+        action = 0
+        
+    action = max(0, min(action, num_tasks - 1))
+    return action, input_ids[0], response_ids
+
+tokenizer = AutoTokenizer.from_pretrained("distilgpt2")
+if tokenizer.pad_token is None:
+    tokenizer.pad_token = tokenizer.eos_token
+model = AutoModelForCausalLM.from_pretrained("distilgpt2")
+
+config = PPOConfig(
+    learning_rate=1e-5,
+    batch_size=1,
+    mini_batch_size=1
+)
+ppo_trainer = PPOTrainer(config, model, tokenizer)
+
 
 def main():
     env = TaskMeshEnv()
@@ -77,9 +130,13 @@ def main():
 
         while not done:
             tasks = _extract_tasks(state)
-            action = _pick_action(tasks, w_priority, w_duration, env.current_time)
+            state_text = state_to_text(state, env.current_time)
+            action, input_ids, response_ids = model_predict(state_text, len(tasks))
             state, reward, done = _step_env(env, action)
             total_reward += reward
+            
+            reward_tensor = torch.tensor([float(reward)])
+            ppo_trainer.step([input_ids], [response_ids], [reward_tensor])
 
         if total_reward > best_reward:
             best_reward = total_reward
