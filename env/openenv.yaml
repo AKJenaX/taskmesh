@@ -1,2 +1,0 @@
-name: taskmesh-env
-entry_point: env.taskmesh_env:TaskMeshEnv
