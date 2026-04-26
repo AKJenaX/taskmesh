@@ -54,9 +54,7 @@ Applications such as cloud computing, network traffic management, and industrial
 
 TaskMesh demonstrates that a learning-based approach can adapt to dynamic environments and outperform static rule-based systems, leading to more efficient and resilient operations.
 
+
 7. Links
 
-Hugging Face Space (Live Demo): Explore TaskMesh
-Colab Notebook (TRL Training): Run the Code
-GitHub Repository: View the Source
-YouTube Pitch: Watch the Video (Replace with actual video link)
+GitHub Repository: https://github.com/AKJenaX/taskmesh
